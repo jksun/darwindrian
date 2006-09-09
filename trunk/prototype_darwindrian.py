@@ -5,6 +5,7 @@
 #
 #require: JPython + Swing
 import random
+import darwindrian_chromosome
 
 from javax import swing
 from java import awt
