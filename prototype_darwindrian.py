@@ -96,25 +96,25 @@ class Mondrian:
 	def __init__(self):
 		self.__points = []
 		self.__rectangle = {}
-		self.__line_vertical = []
-		self.__line_horizontal = []
+		self.__lines = {}
 			
 	def __find_end_lengths(self, s_p, direction):
 		endlengths = None
-		candidate_line = None
+		candidate_lines = None
 		test_line = None
 		length = max(self.__size.width,self.__size.height)
 		
 		test_line = HVLine(s_p, direction, length)
 		
 		test_intersect = lambda l1, l2 = test_line: l2.intersectsLine(l1) and l1.get_origin_point() <> l2.get_origin_point()
+		candidate_lines = filter(test_intersect, self.get_all_lines())
+		
+		#print 'candidate-',direction,candidate_lines
 		
 		if direction in ['East','West']:
-			candidate_line = filter(test_intersect, self.__line_vertical)
-			endlengths = map(lambda l, s_p = s_p: abs(l.getX1() - s_p.x), candidate_line)
+			endlengths = map(lambda l, s_p = s_p: abs(l.getX1() - s_p.x), candidate_lines)
 		else:
-			candidate_line = filter(test_intersect, self.__line_horizontal)
-			endlengths = map(lambda l, s_p = s_p: abs(l.getY1() - s_p.y), candidate_line)
+			endlengths = map(lambda l, s_p = s_p: abs(l.getY1() - s_p.y), candidate_lines)
 			
 		return endlengths
 	
@@ -164,10 +164,7 @@ class Mondrian:
 		
 		print'generated line:',d,"-",op.x,op.y
 		
-		if d in ['East','West']:
-			self.__line_horizontal.append(newline)
-		else:
-			self.__line_vertical.append(newline)
+		self.__lines[d].append(newline)
 			
 	def refresh(self, dimension = None):
 		if dimension != None:
@@ -177,17 +174,19 @@ class Mondrian:
 		self.compose()
 	
 	def __load_borderline(self):
-		self.__line_horizontal += [HVLine(OPoint(0,0),'East',self.__size.width)]
-		self.__line_horizontal += [HVLine(OPoint(0,self.__size.height),'East',self.__size.width)]
-		self.__line_vertical += [HVLine(OPoint(0,0),'South',self.__size.height)]
-		self.__line_vertical += [HVLine(OPoint(self.__size.width,0),'South',self.__size.height)]
+		d = 'East'
+		self.__lines[d].append(HVLine(OPoint(0,0),d,self.__size.width))
+		self.__lines[d].append(HVLine(OPoint(0,self.__size.height),d,self.__size.width))
+		d = 'South'
+		self.__lines[d].append(HVLine(OPoint(0,0),d,self.__size.height))
+		self.__lines[d].append(HVLine(OPoint(self.__size.width,0),d,self.__size.height))
 		
 	#refine
 	def compose(self):
 		self.__points = []
 		self.__rectangle.clear()
-		self.__line_vertical = []
-		self.__line_horizontal = []
+		for direction in HVLine.directions:
+			self.__lines[direction] = []
 		self.__load_borderline()
 		
 		complexity = 3
@@ -197,15 +196,22 @@ class Mondrian:
 		self.__add_rectangles()
 	
 	def get_border_lines(self):
-		self.__line_vertical.sort(lambda l1,l2: int(l1.getX1() - l2.getX1()))
-		self.__line_horizontal.sort(lambda l1,l2: int(l1.getY1() - l2.getY1()))
-		
-		return [self.__line_vertical[0],self.__line_vertical[-1],self.__line_horizontal[0],self.__line_horizontal[-1]]
+		east = self.__lines['East']
+		east.sort(lambda l1,l2: int(l1.getY1() - l2.getY1()))
+		south = self.__lines['South']
+		south.sort(lambda l1,l2: int(l1.getX1() - l2.getX1()))
+		return [east[0],east[-1],south[0],south[-1]]
 	
+	def get_all_lines(self):
+		result = []
+		for i in self.__lines.values():
+			result += i
+		return result
+		
 	#Borderlines not included
 	def get_lines(self):
 		borders = self.get_border_lines()
-		return filter(lambda l, b = borders: l not in b, self.__line_vertical + self.__line_horizontal)
+		return filter(lambda l, b = borders: l not in b, self.get_all_lines())
 	
 	def get_rectangles(self):
 		return self.__rectangle.items()
