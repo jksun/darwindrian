@@ -159,7 +159,7 @@ class Mondrian:
 		d = random.choice(op.get_aval_direction())
 		op.emit_on_direction(d)
 		
-		endlengths = self.__find_end_length(op, d)
+		endlengths = self.__find_end_lengths(op, d)
 		newline = HVLine(op,d,random.choice(endlengths))
 		
 		print'generated line:',d,"-",op.x,op.y
