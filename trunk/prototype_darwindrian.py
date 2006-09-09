@@ -9,6 +9,7 @@ import random
 from javax import swing
 from java import awt
 from java.awt import geom
+from java.awt.print import Printable
 
 #debug flag
 debug = 0
@@ -20,6 +21,30 @@ YELLOW = awt.Color(0.96,0.83,0.28)
 RED = awt.Color(0.66,0.13,0.17)
 BLACK = awt.Color(0.06,0.06,0.06)
 
+class HVLine(awt.geom.Line2D.Double):
+	directions = ['East','West','South', 'North']
+	def __init__(self,sp, direction, length):
+		awt.geom.Line2D.Double.__init__(self)
+		epx = sp.x
+		epy = sp.y
+		if direction == 'East':
+			epx = sp.x + length
+		elif direction == 'West':
+			epx = sp.x - length
+		elif direction == 'South':
+			epy = sp.y + length
+		elif direction == 'North':
+			epy = sp.y - length
+		self.setLine(sp.x,sp.y,epx,epy)
+		self.__direction = direction
+		self.__origin_point = sp
+	
+	def get_direction(self):
+		return self.__direction
+	
+	def get_origin_point(self):
+		return self.__origin_point
+		
 #OPoint stands for OriginalPoint
 class OPoint(awt.Point):
 	#Cross: 4 lines connected
@@ -58,6 +83,10 @@ class OPoint(awt.Point):
 			return 'Nodal'
 		else:
 			return 'Cross'
+	
+	def __add__(self, p):
+		if p.__class__ == [].__class__:
+			return OPoint(self.x + p[0], self.y + p[1])
 
 class Mondrian:
 		
@@ -70,32 +99,24 @@ class Mondrian:
 		self.__line_vertical = []
 		self.__line_horizontal = []
 			
-	def __find_optional_endpoint(self, s_p, direction):
-		endpoint = None
+	def __find_end_length(self, s_p, direction):
+		endlength = None
 		candidate_line = None
 		test_line = None
+		length = max(self.__size.width,self.__size.height)
 		
-		if direction == 'East':
-			test_line = geom.Line2D.Double(s_p.x+1, s_p.y, self.__size.width, s_p.y)
-		elif direction == 'West':
-			test_line = geom.Line2D.Double(s_p.x-1, s_p.y, 0, s_p.y)
-		elif direction == 'South':
-			test_line = geom.Line2D.Double(s_p.x, s_p.y+1, s_p.x, self.__size.height)
-		elif direction == 'North':
-			test_line = geom.Line2D.Double(s_p.x, s_p.y-1, s_p.x, 0)
+		test_line = HVLine(s_p, direction, length)
 		
-		test_intersect = lambda l1, l2 = test_line: l2.intersectsLine(l1)
+		test_intersect = lambda l1, l2 = test_line: l2.intersectsLine(l1) and l1.get_origin_point() <> l2.get_origin_point()
 		
 		if direction in ['East','West']:
 			candidate_line = filter(test_intersect, self.__line_vertical)
-			selected = random.choice(candidate_line)
-			endpoint = OPoint(int(selected.getX1()), s_p.y)
+			endlength = map(lambda l, s_p = s_p: abs(l.getX1() - s_p.x), candidate_line)
 		else:
 			candidate_line = filter(test_intersect, self.__line_horizontal)
-			selected = random.choice(candidate_line)
-			endpoint = OPoint(s_p.x, int(selected.getY1()))
+			endlength = map(lambda l, s_p = s_p: abs(l.getY1() - s_p.y), candidate_line)
 			
-		return endpoint
+		return endlength
 	
 	def __add_rectangles(self):
 		#sort
@@ -104,11 +125,33 @@ class Mondrian:
 				
 		self.__generate_color_rectangle()
 	
+	
+	def __fill_color_rectangle(self):
+		pass
+		
+	def __get_overlaped_sorted(self, l):
+		def overlaps(l1, l2):
+			within = lambda x1,x2,x: x1 < x < x2 or x2 < x < x1
+			if l1.getX1() == l1.getX2(): # vertical
+				return within(l1.getY1(),l1.getY2(), l2.getY1()) or within(l1.getY1(),l1.getY2(), l2.getY2())
+			elif l1.getY1() == l1.getY2(): # horizontal
+				return within(l1.getX1(),l1.getX2(), l2.getX1()) or within(l1.getX1(),l1.getX2(), l2.getX2())
+		
+		result = None
+		if l in self.__line_horizontal:
+			result = filter(lambda l_other, l = l, func = overlaps: func(l_other, l), self.__line_horizontal)
+			result.sort(lambda l1, l2, l = l: abs(l.getY1() - l1.getY1())-abs(l.getY1()-l2.getY1())) #sort by distance to l 
+		elif l in self.__line_vertical:
+			result = filter(lambda l_other, l = l, func = overlaps: func(l_other, l), self.__line_vertical)
+			result.sort(lambda l1, l2, l = l: abs(l.getX1() - l1.getX1())-abs(l.getX1()-l2.getX1())) #sort by distance to l 
+		
+		return result
 	#Refactory needed	
 	#20% chance to flow independently;
 	#75% chance to fill rentangle surrounded by lines;
 	#5% chance to fill rentangle across one line	
 	def __generate_color_rectangle(self):
+	
 		#vertical bond
 		vb1 = random.choice(self.__line_vertical[0:len(self.__line_vertical)-1])
 		vb2 = self.__line_vertical[self.__line_vertical.index(vb1)+1]
@@ -154,7 +197,7 @@ class Mondrian:
 				elif p.get_type() == 'Terminal' and self.luck(0.95):
 					self.__generate_one_line(p)
 				elif p.get_type() == 'OnLine' and self.luck(0.4):
-					self.__generate_one_line(p)
+					self.__generate_one_line(p) 
 				elif p.get_type() == 'Nodal' and self.luck(0.1):
 					self.__generate_one_line(p)
 				elif p.get_type() == 'Cross':
@@ -170,8 +213,8 @@ class Mondrian:
 		d = random.choice(op.get_aval_direction())
 		op.emit_on_direction(d)
 		
-		endpoint = self.__find_optional_endpoint(op, d)
-		newline = geom.Line2D.Double(op, endpoint)
+		endlengths = self.__find_end_length(op, d)
+		newline = HVLine(op,d,random.choice(endlengths))
 		
 		print'generated line:',d,"-",op.x,op.y
 		
@@ -188,10 +231,10 @@ class Mondrian:
 		self.compose()
 	
 	def __load_borderline(self):
-		self.__line_horizontal += [geom.Line2D.Double(0,0,self.__size.width,0)]
-		self.__line_horizontal += [geom.Line2D.Double(0,self.__size.height,self.__size.width,self.__size.height)]
-		self.__line_vertical += [geom.Line2D.Double(0,0,0,self.__size.height)]
-		self.__line_vertical += [geom.Line2D.Double(self.__size.width,0,self.__size.width,self.__size.height)]
+		self.__line_horizontal += [HVLine(OPoint(0,0),'East',self.__size.width)]
+		self.__line_horizontal += [HVLine(OPoint(0,self.__size.height),'East',self.__size.width)]
+		self.__line_vertical += [HVLine(OPoint(0,0),'South',self.__size.height)]
+		self.__line_vertical += [HVLine(OPoint(self.__size.width,0),'South',self.__size.height)]
 		
 	#refine
 	def compose(self):
@@ -201,7 +244,7 @@ class Mondrian:
 		self.__line_horizontal = []
 		self.__load_borderline()
 		
-		complexity = 2
+		complexity = 3
 		print 'composing, complexity =',complexity
 		self.__add_original_points(complexity)
 		self.__add_lines()
@@ -228,7 +271,7 @@ class Canvas(swing.JPanel):
 	def __init__(self):
 		swing.JPanel.__init__(self)
 		global mondrian_instance
-		self.preferredSize = awt.Dimension(480,640)
+		self.preferredSize = awt.Dimension(480,480)
 		self.background = WHITE
 		self.__line_stroke = awt.BasicStroke(9)
 		self.__rec_stroke = awt.BasicStroke()
@@ -247,15 +290,21 @@ class Canvas(swing.JPanel):
 		for l in mondrian_instance.get_lines():
 			g.setColor(BLACK)
 			g.draw(l)
-			
+		
 		#debug line
 		if not debug:
 			return
+			
 		g.setStroke(self.__rec_stroke)
 		for l in mondrian_instance.get_debug_lines():
 			g.setColor(awt.Color.GRAY)
 			g.draw(l)
-
+		
+		g.setStroke(self.__line_stroke)
+		for l in mondrian_instance.get_border_lines():
+			g.setColor(awt.Color.RED)
+			g.draw(l)
+			
 class ControlPane(swing.JPanel,awt.event.ActionListener):
 	def __init__(self):
 		swing.JPanel.__init__(self)
