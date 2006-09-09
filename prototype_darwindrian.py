@@ -1,16 +1,17 @@
 #Darwindrian: Prototype
+#2D related module
 #Related article: Cyber-Genetic Neo-Plasticism
 #
 #Author: Jian Yin Shen, ANU
 #
 #require: JPython + Swing
-import random
-import darwindrian_chromosome
 
 from javax import swing
 from java import awt
 from java.awt import geom
 from java.awt.print import Printable
+
+from darwindrian_chromosome import *
 
 #debug flag
 debug = 0
@@ -88,15 +89,12 @@ class HVPoint(awt.Point):
 		if p.__class__ == [].__class__:
 			return HVPoint(self.x + p[0], self.y + p[1])
 
-class Mondrian:
-		
-	def luck(self,percentage):
-		return random.uniform(0,1) <= percentage
-	
+class Mondrian:	
 	def __init__(self):
 		self.__points = []
 		self.__rectangle = {}
 		self.__lines = {}
+		self.__chromosome = None
 			
 	def __find_end_lengths(self, s_p, direction):
 		endlengths = None
@@ -121,8 +119,9 @@ class Mondrian:
 	def __fill_color_rectangle(self):
 		pass
 			
-	def __add_original_points(self, complexity):
-		for i in range(0, complexity):
+	def __add_original_points(self):
+		print 'complexity:',self.__chromosome.complexity
+		for i in range(0, self.__chromosome.complexity):
 			x = random.randint(1,self.__size.width)
 			y = random.randint(1,self.__size.height)
 			p = HVPoint(x, y)
@@ -131,20 +130,12 @@ class Mondrian:
 			#Is sorting needed?
 			self.__points.sort((lambda p1, p2: p1.x - p2.x))
 
-	def __add_lines(self, loop = 5):
-		for l in range(0,loop):
+	def __add_lines(self):
+		for l in range(0,self.__chromosome.loop):
 			random.shuffle(self.__points)
 			for p in self.__points:
-				if p.get_type() == 'Initial':
+				if self.__chromosome.have_more_line(p):
 					self.__generate_one_line(p)
-				elif p.get_type() == 'Terminal' and self.luck(0.95):
-					self.__generate_one_line(p)
-				elif p.get_type() == 'OnLine' and self.luck(0.4):
-					self.__generate_one_line(p) 
-				elif p.get_type() == 'Nodal' and self.luck(0.1):
-					self.__generate_one_line(p)
-				elif p.get_type() == 'Cross':
-					continue
 							
 		#eliminate all rightAngles
 		r_a = filter(lambda p: p.get_type() == 'RightAngle', self.__points)
@@ -167,8 +158,7 @@ class Mondrian:
 		if dimension != None:
 			self.__size = dimension
 
-		#Border lines
-		self.compose()
+		self.compose(ChromoManager.get_next_chromosome())
 	
 	def __load_borderline(self):
 		d = 'East'
@@ -179,16 +169,15 @@ class Mondrian:
 		self.__lines[d].append(HVLine(HVPoint(self.__size.width,0),d,self.__size.height))
 		
 	#refine
-	def compose(self):
+	def compose(self, chromosome):
+		self.__chromosome = chromosome
 		self.__points = []
 		self.__rectangle.clear()
 		for direction in HVLine.directions:
 			self.__lines[direction] = []
 		self.__load_borderline()
 		
-		complexity = 3
-		print 'composing, complexity =',complexity
-		self.__add_original_points(complexity)
+		self.__add_original_points()
 		self.__add_lines()
 		self.__add_rectangles()
 	
