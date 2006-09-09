@@ -99,8 +99,8 @@ class Mondrian:
 		self.__line_vertical = []
 		self.__line_horizontal = []
 			
-	def __find_end_length(self, s_p, direction):
-		endlength = None
+	def __find_end_lengths(self, s_p, direction):
+		endlengths = None
 		candidate_line = None
 		test_line = None
 		length = max(self.__size.width,self.__size.height)
@@ -111,73 +111,19 @@ class Mondrian:
 		
 		if direction in ['East','West']:
 			candidate_line = filter(test_intersect, self.__line_vertical)
-			endlength = map(lambda l, s_p = s_p: abs(l.getX1() - s_p.x), candidate_line)
+			endlengths = map(lambda l, s_p = s_p: abs(l.getX1() - s_p.x), candidate_line)
 		else:
 			candidate_line = filter(test_intersect, self.__line_horizontal)
-			endlength = map(lambda l, s_p = s_p: abs(l.getY1() - s_p.y), candidate_line)
+			endlengths = map(lambda l, s_p = s_p: abs(l.getY1() - s_p.y), candidate_line)
 			
-		return endlength
+		return endlengths
 	
 	def __add_rectangles(self):
-		#sort
-		self.__line_vertical.sort(lambda l1,l2: int(l1.getX1() - l2.getX1()))
-		self.__line_horizontal.sort(lambda l1,l2: int(l1.getY1() - l2.getY1()))
-				
-		self.__generate_color_rectangle()
-	
-	
+		print 'add rectangle not implemented'	
+		
 	def __fill_color_rectangle(self):
 		pass
-		
-	def __get_overlaped_sorted(self, l):
-		def overlaps(l1, l2):
-			within = lambda x1,x2,x: x1 < x < x2 or x2 < x < x1
-			if l1.getX1() == l1.getX2(): # vertical
-				return within(l1.getY1(),l1.getY2(), l2.getY1()) or within(l1.getY1(),l1.getY2(), l2.getY2())
-			elif l1.getY1() == l1.getY2(): # horizontal
-				return within(l1.getX1(),l1.getX2(), l2.getX1()) or within(l1.getX1(),l1.getX2(), l2.getX2())
-		
-		result = None
-		if l in self.__line_horizontal:
-			result = filter(lambda l_other, l = l, func = overlaps: func(l_other, l), self.__line_horizontal)
-			result.sort(lambda l1, l2, l = l: abs(l.getY1() - l1.getY1())-abs(l.getY1()-l2.getY1())) #sort by distance to l 
-		elif l in self.__line_vertical:
-			result = filter(lambda l_other, l = l, func = overlaps: func(l_other, l), self.__line_vertical)
-			result.sort(lambda l1, l2, l = l: abs(l.getX1() - l1.getX1())-abs(l.getX1()-l2.getX1())) #sort by distance to l 
-		
-		return result
-	#Refactory needed	
-	#20% chance to flow independently;
-	#75% chance to fill rentangle surrounded by lines;
-	#5% chance to fill rentangle across one line	
-	def __generate_color_rectangle(self):
-	
-		#vertical bond
-		vb1 = random.choice(self.__line_vertical[0:len(self.__line_vertical)-1])
-		vb2 = self.__line_vertical[self.__line_vertical.index(vb1)+1]
-		#horizontal bond
-		hb1 = random.choice(self.__line_horizontal[0:len(self.__line_horizontal)-1])
-		hb2 = self.__line_horizontal[self.__line_horizontal.index(hb1)+1]
-		
-		if self.luck(1.0): #0.2
-			x = int(vb1.getX1())
-			#y = int(random.uniform(hb1.getY1(),hb2.getY1()))
-			y = int(hb1.getY1())
-			width = int(vb2.getX1() - vb1.getX1())
-			height = int(random.uniform(1,hb2.getY1()-y))
 			
-			rec = awt.Rectangle(x,y,width,height)
-			color = random.choice([RED, BLUE, YELLOW])
-			
-			self.__rectangle[rec] = color
-			 
-		elif self.luck(0.75):
-			#impl
-			pass
-		else:
-			#impl
-			pass
-	
 	def __add_original_points(self, complexity):
 		for i in range(0, complexity):
 			x = random.randint(1,self.__size.width)
