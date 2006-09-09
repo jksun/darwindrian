@@ -45,8 +45,7 @@ class HVLine(awt.geom.Line2D.Double):
 	def get_origin_point(self):
 		return self.__origin_point
 		
-#OPoint stands for OriginalPoint
-class OPoint(awt.Point):
+class HVPoint(awt.Point):
 	#Cross: 4 lines connected
 	#Nodal: 3 lines already connected
 	#Terminal: 1 line connected
@@ -86,7 +85,7 @@ class OPoint(awt.Point):
 	
 	def __add__(self, p):
 		if p.__class__ == [].__class__:
-			return OPoint(self.x + p[0], self.y + p[1])
+			return HVPoint(self.x + p[0], self.y + p[1])
 
 class Mondrian:
 		
@@ -102,15 +101,12 @@ class Mondrian:
 		endlengths = None
 		candidate_lines = None
 		test_line = None
-		length = max(self.__size.width,self.__size.height)
-		
-		test_line = HVLine(s_p, direction, length)
-		
-		test_intersect = lambda l1, l2 = test_line: l2.intersectsLine(l1) and l1.get_origin_point() <> l2.get_origin_point()
+		length = max(self.__size.width,self.__size.height)		
+		test_line = HVLine(s_p, direction, length)		
+		test_intersect = lambda l1, l2 = test_line: l2.intersectsLine(l1) \
+			and l1.get_origin_point() <> l2.get_origin_point()
 		candidate_lines = filter(test_intersect, self.get_all_lines())
-		
-		#print 'candidate-',direction,candidate_lines
-		
+
 		if direction in ['East','West']:
 			endlengths = map(lambda l, s_p = s_p: abs(l.getX1() - s_p.x), candidate_lines)
 		else:
@@ -128,7 +124,7 @@ class Mondrian:
 		for i in range(0, complexity):
 			x = random.randint(1,self.__size.width)
 			y = random.randint(1,self.__size.height)
-			p = OPoint(x, y)
+			p = HVPoint(x, y)
 			self.__points.append(p)
 			print 'generated point: (',p.x,p.y,')'
 			#Is sorting needed?
@@ -175,11 +171,11 @@ class Mondrian:
 	
 	def __load_borderline(self):
 		d = 'East'
-		self.__lines[d].append(HVLine(OPoint(0,0),d,self.__size.width))
-		self.__lines[d].append(HVLine(OPoint(0,self.__size.height),d,self.__size.width))
+		self.__lines[d].append(HVLine(HVPoint(0,0),d,self.__size.width))
+		self.__lines[d].append(HVLine(HVPoint(0,self.__size.height),d,self.__size.width))
 		d = 'South'
-		self.__lines[d].append(HVLine(OPoint(0,0),d,self.__size.height))
-		self.__lines[d].append(HVLine(OPoint(self.__size.width,0),d,self.__size.height))
+		self.__lines[d].append(HVLine(HVPoint(0,0),d,self.__size.height))
+		self.__lines[d].append(HVLine(HVPoint(self.__size.width,0),d,self.__size.height))
 		
 	#refine
 	def compose(self):
