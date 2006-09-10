@@ -8,8 +8,11 @@
 
 from javax import swing
 from java import awt
+from java import io
 from java.awt import geom
-from java.awt.print import Printable
+from java.awt import image
+from java.awt.event import *
+from javax.imageio import ImageIO
 
 from darwindrian_chromosome import *
 from darwindrian_color_sample import *
@@ -229,8 +232,12 @@ class Mondrian:
 	def get_debug_lines(self):
 		return map(lambda p: geom.Line2D.Double(0,0,p.x,p.y), \
 			reduce(lambda s1, s2: s1+s2, self.get_all_nodes().values()))
-		
-class Canvas(swing.JPanel):
+
+#Over is Darwindrian drawing impl (high tech)
+#Seperate ------------------------------------
+#The following is Swing programming (low tech)
+
+class Canvas(swing.JPanel, awt.event.ActionListener):
 	def __init__(self):
 		swing.JPanel.__init__(self)
 		global mondrian_instance
@@ -238,6 +245,7 @@ class Canvas(swing.JPanel):
 		self.background = WHITE
 		self.__line_stroke = awt.BasicStroke(9)
 		self.__rec_stroke = awt.BasicStroke()
+		self.__load_popup_menu()
 		mondrian_instance.refresh(self.preferredSize)
 		
 	def paint(self,g):
@@ -268,6 +276,47 @@ class Canvas(swing.JPanel):
 			#g.setColor(awt.Color.RED)
 			#g.draw(l)
 			pass
+	
+	def __save_as(self):
+		#f = io.File(filename)
+		#out = ImageIO.createImageOutputStream(f)
+		#im = image.BufferedImage()
+		print 'invoked save as'
+		jc = swing.JFileChooser()
+		resp = jc.showSaveDialog(self)
+		if resp == swing.JFileChooser.APPROVE_OPTION:
+			self.__output_image(jc.getSelectedFile())
+	
+	def __output_image(self, f):
+		print 'saving image:',f.getPath()
+		out = io.FileOutputStream(f)
+		size = self.preferredSize
+		im = image.BufferedImage(size.width, size.height, image.BufferedImage.TYPE_INT_RGB)
+		g2d = im.getGraphics()
+		self.paint(g2d)
+		ImageIO.write(im,'png',out)
+		out.close()
+		print 'saving image done'
+		
+	def __load_popup_menu(self):
+		self.__popup = swing.JPopupMenu()
+		self.__saveas = swing.JMenuItem('Save as png...')
+		self.__popup.add(self.__saveas)
+		self.__saveas.addActionListener(self)
+		
+		class MV(MouseAdapter):
+			def __init__(self, popup):
+				self.__popup = popup
+				
+			def mouseClicked(self, e):
+				if e.getButton() == MouseEvent.BUTTON3:
+					self.__popup.show(e.getComponent(), e.getX(), e.getY())
+					
+		self.addMouseListener(MV(self.__popup))
+		
+	def actionPerformed(self, e):
+		if e.getSource() == self.__saveas:
+			self.__save_as()
 			
 class ControlPane(swing.JPanel,awt.event.ActionListener):
 	def __init__(self):
@@ -282,7 +331,7 @@ class ControlPane(swing.JPanel,awt.event.ActionListener):
 		if e.getSource() == self.__next_b:
 			mondrian_instance.refresh()
 			self.getParent().repaint()
-		
+			
 #global singleton instance
 mondrian_instance = Mondrian()
 
