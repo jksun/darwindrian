@@ -19,6 +19,13 @@ class Chromosome:
 		probability = self.__structure_dist[node.get_type()]
 		return luck(probability)
 		
+	def next_rectangle(self, nodes):		
+		keys = nodes.keys()
+		keys.sort()
+		
+		#find possible rectangle, clockwise
+		return None
+	
 class ChromosomeManager:
 	def __init__(self):
 		pass
