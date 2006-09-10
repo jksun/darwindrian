@@ -14,7 +14,7 @@ from java.awt.print import Printable
 from darwindrian_chromosome import *
 
 #debug flag
-debug = 0
+debug = 1
 
 #Color samples from Mondrian's painting
 WHITE = awt.Color(0.9,0.9,0.88)
@@ -85,11 +85,15 @@ class HVPoint(awt.Point):
 		else:
 			return 'Cross'
 	
+	def __repr__(self):
+		return '('+str(self.x)+', '+str(self.y)+')'
+	
 	def __add__(self, p):
 		if p.__class__ == [].__class__:
 			return HVPoint(self.x + p[0], self.y + p[1])
 
 class Mondrian:	
+	'''He who paints'''
 	def __init__(self):
 		self.__points = []
 		self.__rectangle = {}
@@ -113,8 +117,15 @@ class Mondrian:
 			
 		return endlengths
 	
-	def __add_rectangles(self):
-		print 'add rectangle not implemented'	
+	def __add_rectangles(self, nodes = None):
+		if nodes == None:
+			nodes = self.get_all_nodes()
+		rec_color = self.__chromosome.next_rectangle(nodes)
+		if rec_color == None:
+			return
+		else:
+			self.__rectangle[rec_color[0]] = rec_color[1]
+			self.__addRectangles(nodes)
 		
 	def __fill_color_rectangle(self):
 		pass
@@ -126,7 +137,7 @@ class Mondrian:
 			y = random.randint(1,self.__size.height)
 			p = HVPoint(x, y)
 			self.__points.append(p)
-			print 'generated point: (',p.x,p.y,')'
+			print 'generated point:',p
 			#Is sorting needed?
 			self.__points.sort((lambda p1, p2: p1.x - p2.x))
 
@@ -194,6 +205,29 @@ class Mondrian:
 			result += i
 		return result
 		
+	def get_all_nodes(self):
+		'''load all nodes in the graph. May or may not include original point'''
+		points = {}
+		all = self.get_all_lines()
+		for l in all:
+			for l2 in all:
+				if l.intersectsLine(l2) and l <> l2:
+					p = None
+					if l in self.__lines['East'] or l in self.__lines['West']:
+						p = geom.Point2D.Double(l2.getX1(),l.getY1())
+					else:
+						p = geom.Point2D.Double(l.getX1(),l2.getY1())
+					#index by y value
+					if not points.has_key(p.y):
+						points[p.y] = []
+					if p not in points[p.y]:
+						points[p.y].append(p)
+		
+		#each 'row' sort by x value
+		for row in points.values():
+			row.sort(lambda p1, p2: int(p1.x - p2.x))			
+		return points
+							
 	#Borderlines not included
 	def get_lines(self):
 		borders = self.get_border_lines()
@@ -203,7 +237,8 @@ class Mondrian:
 		return self.__rectangle.items()
 	
 	def get_debug_lines(self):
-		return map(lambda p: geom.Line2D.Double(0,0,p.x,p.y), self.__points)
+		return map(lambda p: geom.Line2D.Double(0,0,p.x,p.y), \
+			reduce(lambda s1, s2: s1+s2, self.get_all_nodes().values()))
 		
 class Canvas(swing.JPanel):
 	def __init__(self):
