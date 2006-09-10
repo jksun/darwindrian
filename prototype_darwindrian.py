@@ -12,16 +12,10 @@ from java.awt import geom
 from java.awt.print import Printable
 
 from darwindrian_chromosome import *
+from darwindrian_color_sample import *
 
 #debug flag
-debug = 1
-
-#Color samples from Mondrian's painting
-WHITE = awt.Color(0.9,0.9,0.88)
-BLUE = awt.Color(0.05,0.31,0.62)
-YELLOW = awt.Color(0.96,0.83,0.28)
-RED = awt.Color(0.66,0.13,0.17)
-BLACK = awt.Color(0.06,0.06,0.06)
+debug = 0
 
 class HVLine(awt.geom.Line2D.Double):
 	directions = ['East','West','South', 'North']
@@ -96,7 +90,7 @@ class Mondrian:
 	'''He who paints'''
 	def __init__(self):
 		self.__points = []
-		self.__rectangle = {}
+		self.__rectangles = {}
 		self.__lines = {}
 		self.__chromosome = None
 			
@@ -117,19 +111,15 @@ class Mondrian:
 			
 		return endlengths
 	
-	def __add_rectangles(self, nodes = None):
-		if nodes == None:
-			nodes = self.get_all_nodes()
-		rec_color = self.__chromosome.next_rectangle(nodes)
-		if rec_color == None:
-			return
-		else:
-			self.__rectangle[rec_color[0]] = rec_color[1]
-			self.__addRectangles(nodes)
-		
-	def __fill_color_rectangle(self):
-		pass
-			
+	def __add_rectangles(self):
+		nodes = self.get_all_nodes()
+		avail = search_rectangles(nodes)
+		picked = self.__chromosome.pick_rectangles(avail)
+		for r in picked:
+			rec = geom.Rectangle2D.Double(*r[0])
+			color = r[1]
+			self.__rectangles[rec] = color
+					
 	def __add_original_points(self):
 		print 'complexity:',self.__chromosome.complexity
 		for i in range(0, self.__chromosome.complexity):
@@ -183,7 +173,7 @@ class Mondrian:
 	def compose(self, chromosome):
 		self.__chromosome = chromosome
 		self.__points = []
-		self.__rectangle.clear()
+		self.__rectangles.clear()
 		for direction in HVLine.directions:
 			self.__lines[direction] = []
 		self.__load_borderline()
@@ -211,7 +201,7 @@ class Mondrian:
 		all = self.get_all_lines()
 		for l in all:
 			for l2 in all:
-				if l.intersectsLine(l2) and l <> l2:
+				if l.intersectsLine(l2) and l <> l2: #and l.get_origin_point() <> l2.get_origin_point():
 					p = None
 					if l in self.__lines['East'] or l in self.__lines['West']:
 						p = geom.Point2D.Double(l2.getX1(),l.getY1())
@@ -234,7 +224,7 @@ class Mondrian:
 		return filter(lambda l, b = borders: l not in b, self.get_all_lines())
 	
 	def get_rectangles(self):
-		return self.__rectangle.items()
+		return self.__rectangles.items()
 	
 	def get_debug_lines(self):
 		return map(lambda p: geom.Line2D.Double(0,0,p.x,p.y), \
@@ -275,8 +265,9 @@ class Canvas(swing.JPanel):
 		
 		g.setStroke(self.__line_stroke)
 		for l in mondrian_instance.get_border_lines():
-			g.setColor(awt.Color.RED)
-			g.draw(l)
+			#g.setColor(awt.Color.RED)
+			#g.draw(l)
+			pass
 			
 class ControlPane(swing.JPanel,awt.event.ActionListener):
 	def __init__(self):
