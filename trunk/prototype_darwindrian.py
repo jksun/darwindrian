@@ -13,7 +13,7 @@ from java.awt import geom
 from java.awt import image
 from java.awt.event import *
 from javax.imageio import ImageIO
-
+from java.lang import NullPointerException
 from darwindrian_chromosome import *
 from darwindrian_color_sample import *
 
@@ -352,7 +352,11 @@ def start_window():
 			
 def testing():
 	if __name__ == '__main__':
-		start_window()
-		
+		try:
+			start_window()
+		except NullPointerException, e1:
+			print 'Warning: null pointer exception detected'
+		except Exception, e2:
+			print 'Warning: Exception detected'
 #run
 testing()
