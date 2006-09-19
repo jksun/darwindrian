@@ -314,17 +314,30 @@ class Canvas(swing.JPanel):
 class ControlPane(swing.JPanel):
 	def __init__(self):
 		swing.JPanel.__init__(self)
-		self.__next_b = swing.JButton('next')
-		#self.__next_b.addActionListener(self)
-		controller.add_action(self.__next_b, self.__next_paint)
 		self.layout = awt.FlowLayout(awt.FlowLayout.RIGHT)
+		
+		self.__next_b = swing.JButton('See next')
+		self.add(swing.JLabel("You like? "))
+		self.__group = swing.ButtonGroup()
+		
+		#radio buttons
+		def rb(text, _self = self):
+			b = swing.JRadioButton(text)
+			b.setActionCommand(text)
+			return b
+			
+		for b in (rb('Structure'), rb('Color'), rb('Both'), rb('None')):
+			self.add(b)
+			self.__group.add(b)
+			
 		self.add(self.__next_b)
+		controller.add_action(self.__next_b, self.__next_paint)
+		
 	
 	def __next_paint(self):
 		mondrian_instance.refresh()
 		self.getParent().repaint()
 		
-
 class GlobalController:
 	
 	class DummyAction(awt.event.ActionListener):
@@ -362,14 +375,11 @@ class GlobalController:
 	def add_mouse_action(self, source, method, action_type, *para):
 		m = GlobalController.DummyMouseAction(method, action_type, para)
 		source.addMouseListener(m)
-		#test trigger
-		#m.mouseClicked(None)
 		
 	def __init__(self):
 		pass
 	
-	
-	
+			
 #global singleton instance
 mondrian_instance = Mondrian()
 controller = GlobalController()
@@ -391,10 +401,10 @@ def start_window():
 			
 def testing():
 	if __name__ == '__main__':
-		try:
-			start_window()
-		except NullPointerException, e1:
-			print 'Warning: null pointer exception detected'
+		#try:
+		start_window()
+		#except NullPointerException, e1:
+		#	print 'Warning: null pointer exception detected'
 		#except Exception, e2:
 		#	print 'Warning: Exception detected:',e2
 #run
