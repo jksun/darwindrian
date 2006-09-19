@@ -9,7 +9,7 @@ from darwindrian_color_sample import *
 
 class Chromosome:
 	def __init__(self):
-		self.complexity = 4 #default
+		self.complexity = 3 #default
 		self.loop = 4 
 		#Possibility value for each node type to have 1 more line
 		self.__structure_dist = \
