@@ -1,3 +1,5 @@
+#!/usr/bin/jython
+
 #Darwindrian: Prototype
 #2D related module
 #Related article: Cyber-Genetic Neo-Plasticism
