@@ -8,7 +8,7 @@ Personal information
 Name:			Jian Yin Shen
 Gender:			Male
 Birthday:		14/12/1982
-Mobile phone: 	0402674951
+Mobile phone: 		0402674951
 Email: 			u4204487@anu.edu.au
 Address: 		530B Northbourne Avenue, Downer, ACT 2602
 
@@ -101,13 +101,13 @@ HD = High Distinction
 D = Distinction
 C = Credit
 
-Algorithm						N/A
-eCommerce						N/A
+Algorithm			N/A
+eCommerce			N/A
 
-Relational Databases			D
-Human-Computer Interface		D
-Computer Graphics				D
+Relational Databases		D
+Human-Computer Interface	D
+Computer Graphics		D
 
-Artificial Intelligence			C
+Artificial Intelligence		C
 Software Design And Analysis	D
-Networked Data Analysis			HD
+Networked Data Analysis		HD
