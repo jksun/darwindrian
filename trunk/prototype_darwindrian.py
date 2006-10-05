@@ -237,7 +237,7 @@ class Mondrian:
 			reduce(lambda s1, s2: s1+s2, self.get_all_nodes().values()))
 
 #Over is Darwindrian drawing impl (high tech)
-#Seperate ------------------------------------
+#Seperate ----------------------------------------------------------------------
 #The following is Swing programming (low tech)
 
 class MiniView(swing.JScrollPane):
@@ -262,10 +262,24 @@ class MiniView(swing.JScrollPane):
 		self.__list.cellRenderer = self.__Renderer()
 		
 		#test add
-		self.__listModel.addElement(self.__MiniMondrian())
+		#self.__listModel.addElement(self.__MiniMondrian())
 		
 		self.setViewportView(self.__list)
-		self.preferredSize = awt.Dimension(80, 480)
+		self.preferredSize = awt.Dimension(81, 480)
+		
+		
+	def add_mini_view(canvas):
+		mini = self.__MiniMondrian()
+		g2d = mini.getGraphics()
+		
+		canvas_x = float(canvas.preferredSize.width)
+		canvas_y = float(canvas.preferredSize.height)
+		mini_x = float(mini.preferredSize.width)
+		mini_y = float(mini.preferredSize.height)
+		
+		g2d.scale(mini_x/canvas_x, mini_y/canvas_y)
+		canvas.paint(g2d)
+		self.__listModel.addElement(mini)
 		
 class Canvas(swing.JPanel):
 	def __init__(self):
@@ -279,7 +293,6 @@ class Canvas(swing.JPanel):
 		mondrian_instance.refresh(self.preferredSize)
 		
 	def paint(self,g):
-		global mondrian_instance
 		swing.JPanel.paint(self,g)
 		#draw rectangles
 		g.setStroke(self.__rec_stroke)
@@ -367,10 +380,12 @@ class ControlPane(swing.JPanel):
 		mondrian_instance.refresh()
 		self.getParent().repaint()
 
+#This class must be instanized after all other gui elements
 class ControlMenu(swing.JMenuBar):
 	def __init__(self):
 		swing.JMenuBar.__init__(self)
 		
+		#init menus
 		m_file = swing.JMenu("File")
 		m_evolution = swing.JMenu("Evolution")
 		m_about = swing.JMenu("about")
