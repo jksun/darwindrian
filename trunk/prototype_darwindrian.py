@@ -92,6 +92,11 @@ class HVPoint(awt.Point):
 		if p.__class__ == [].__class__:
 			return HVPoint(self.x + p[0], self.y + p[1])
 
+class MondrianGraph:
+	def __init__(self):
+		self.rectangles = None
+		self.lines = None
+			
 class Mondrian:	
 	'''He who paints'''
 	def __init__(self):
@@ -166,6 +171,11 @@ class Mondrian:
 			self.__size = dimension
 
 		self.compose(ChromoManager.get_next_chromosome())
+		
+		graph = MondrianGraph()
+		graph.rectangles = self.__rectangles
+		graph.lines = self.__lines
+		return graph
 	
 	def __load_borderline(self):
 		d = 'East'
