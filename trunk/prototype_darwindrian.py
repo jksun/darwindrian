@@ -173,8 +173,8 @@ class Mondrian:
 		self.compose(ChromoManager.get_next_chromosome())
 		
 		graph = MondrianGraph()
-		graph.rectangles = self.__rectangles.items()
-		graph.lines = self.__lines
+		graph.rectangles = self.get_rectangles()
+		graph.lines = self.get_lines()
 		return graph
 	
 	def __load_borderline(self):
@@ -186,7 +186,10 @@ class Mondrian:
 		self.__lines[d].append(HVLine(HVPoint(self.__size.width,0),d,self.__size.height))
 		
 	#refine
-	def compose(self, chromosome):
+	def compose(self, chromosome, dimension = None):
+		if dimension != None:
+			self.__size = dimension
+			
 		self.__chromosome = chromosome
 		self.__points = []
 		self.__rectangles.clear()
@@ -197,6 +200,11 @@ class Mondrian:
 		self.__add_original_points()
 		self.__add_lines()
 		self.__add_rectangles()
+		
+		graph = MondrianGraph()
+		graph.rectangles = self.get_rectangles()
+		graph.lines = self.get_lines()
+		return graph
 	
 	def get_border_lines(self):
 		east = self.__lines['East']
@@ -300,18 +308,25 @@ class Canvas(swing.JPanel):
 		self.__line_stroke = awt.BasicStroke(9)
 		self.__rec_stroke = awt.BasicStroke()
 		self.__load_popup_menu()
-		self.__graph = mondrian_instance.refresh(self.preferredSize)
+		self.__current_graph = None
+		
+	def set_graph(self, graph):
+		self.__current_graph = graph
 		
 	def paint(self,g):
 		swing.JPanel.paint(self,g)
+		
+		if self.__current_graph == None:
+			pass
+			
 		#draw rectangles
 		g.setStroke(self.__rec_stroke)
-		for r in self.__graph.rectangles:
+		for r in self.__current_graph.rectangles:
 			g.setColor(r[1])
 			g.fill(r[0])
 		#draw lines
 		g.setStroke(self.__line_stroke)
-		for l in self.__graph.lines:
+		for l in self.__current_graph.lines:
 			g.setColor(BLACK)
 			g.draw(l)
 		
@@ -383,12 +398,16 @@ class ControlPane(swing.JPanel):
 			self.__group.add(b)
 			
 		self.add(self.__next_b)
-		controller.add_action(self.__next_b, self.__next_paint)
+		controller.add_action(self.__next_b, self.next_paint)
 		
 	
-	def __next_paint(self):
-		mondrian_instance.refresh()
-		self.getParent().repaint()
+	def next_paint(self):
+		global graph_history;
+		chromosome = ChromoManager.get_next_chromosome()
+		graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
+		gui_canvas.set_graph(graph)
+		gui_canvas.repaint()
+		graph_history.append(graph)
 
 #This class must be instanized after all other gui elements
 class ControlMenu(swing.JMenuBar):
@@ -467,6 +486,9 @@ gui_miniView = MiniView()
 gui_statusBar = StatusBar()
 gui_menu = ControlMenu()
 
+#history paint
+graph_history = []
+
 #Assemble gui elements
 def start_window():
 	root = swing.JFrame(title = 'Darwindrian - prototype')
@@ -491,7 +513,10 @@ def start_window():
 	root.resizable = 0
 	root.defaultCloseOperation = swing.JFrame.EXIT_ON_CLOSE
 	root.pack()
-			
+	
+	#generate first Mondrian graph
+	gui_control.next_paint()
+	
 def testing():
 	if __name__ == '__main__':
 		#try:
