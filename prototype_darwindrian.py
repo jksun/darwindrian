@@ -173,7 +173,7 @@ class Mondrian:
 		self.compose(ChromoManager.get_next_chromosome())
 		
 		graph = MondrianGraph()
-		graph.rectangles = self.__rectangles
+		graph.rectangles = self.__rectangles.items()
 		graph.lines = self.__lines
 		return graph
 	
@@ -300,18 +300,18 @@ class Canvas(swing.JPanel):
 		self.__line_stroke = awt.BasicStroke(9)
 		self.__rec_stroke = awt.BasicStroke()
 		self.__load_popup_menu()
-		mondrian_instance.refresh(self.preferredSize)
+		self.__graph = mondrian_instance.refresh(self.preferredSize)
 		
 	def paint(self,g):
 		swing.JPanel.paint(self,g)
 		#draw rectangles
 		g.setStroke(self.__rec_stroke)
-		for r in mondrian_instance.get_rectangles():
+		for r in self.__graph.rectangles:
 			g.setColor(r[1])
 			g.fill(r[0])
 		#draw lines
 		g.setStroke(self.__line_stroke)
-		for l in mondrian_instance.get_lines():
+		for l in self.__graph.lines:
 			g.setColor(BLACK)
 			g.draw(l)
 		
