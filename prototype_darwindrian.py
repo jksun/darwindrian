@@ -268,10 +268,31 @@ class MiniView(swing.JScrollPane):
 			return value
 	
 	class __MiniMondrian(swing.JPanel):
-		def __init__(self):
+		def __init__(self, graph):
 			swing.JPanel.__init__(self)
 			self.preferredSize = awt.Dimension(80,80)
-			self.background = BLUE
+			self.background = WHITE
+			self.__graph = graph
+			
+		def paint(self,g):
+			swing.JPanel.paint(self, g)
+			
+			canvas_x = float(gui_canvas.preferredSize.width)
+			canvas_y = float(gui_canvas.preferredSize.height)
+			mini_x = float(self.preferredSize.width)
+			mini_y = float(self.preferredSize.height)
+			g.scale(mini_x/canvas_x, mini_y/canvas_y)
+			
+			#g.setStroke(self.__rec_stroke)
+			for r in self.__graph.rectangles:
+				g.setColor(r[1])
+				g.fill(r[0])
+				#draw lines
+				#g.setStroke(self.__line_stroke)
+			for l in self.__graph.lines:
+				g.setColor(BLACK)
+				g.draw(l)
+			
 			
 	def __init__(self):
 		swing.JScrollPane.__init__(self)
@@ -283,20 +304,11 @@ class MiniView(swing.JScrollPane):
 		#self.__listModel.addElement(self.__MiniMondrian())
 		
 		self.setViewportView(self.__list)
-		self.preferredSize = awt.Dimension(81, 480)
+		self.preferredSize = awt.Dimension(90, 480)
 		
 		
-	def add_mini_view(canvas):
-		mini = self.__MiniMondrian()
-		g2d = mini.getGraphics()
-		
-		canvas_x = float(canvas.preferredSize.width)
-		canvas_y = float(canvas.preferredSize.height)
-		mini_x = float(mini.preferredSize.width)
-		mini_y = float(mini.preferredSize.height)
-		
-		g2d.scale(mini_x/canvas_x, mini_y/canvas_y)
-		canvas.paint(g2d)
+	def add_mini_view(self, graph):
+		mini = self.__MiniMondrian(graph)
 		self.__listModel.addElement(mini)
 		
 class Canvas(swing.JPanel):
@@ -312,6 +324,9 @@ class Canvas(swing.JPanel):
 		
 	def set_graph(self, graph):
 		self.__current_graph = graph
+	
+	def get_graph(self, graph):
+		return self.__current_graph
 		
 	def paint(self,g):
 		swing.JPanel.paint(self,g)
@@ -408,7 +423,8 @@ class ControlPane(swing.JPanel):
 		gui_canvas.set_graph(graph)
 		gui_canvas.repaint()
 		graph_history.append(graph)
-
+		gui_miniView.add_mini_view(graph)
+		
 #This class must be instanized after all other gui elements
 class ControlMenu(swing.JMenuBar):
 	def __init__(self):
