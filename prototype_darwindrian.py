@@ -240,6 +240,33 @@ class Mondrian:
 #Seperate ------------------------------------
 #The following is Swing programming (low tech)
 
+class MiniView(swing.JScrollPane):
+	
+	class __Renderer(swing.ListCellRenderer):
+		def __init__(self):
+			pass
+			
+		def getListCellRendererComponent(self, ls, value, index, selected, cellHasFocus):
+			return value
+	
+	class __MiniMondrian(swing.JPanel):
+		def __init__(self):
+			swing.JPanel.__init__(self)
+			self.preferredSize = awt.Dimension(80,80)
+			self.background = BLUE
+			
+	def __init__(self):
+		swing.JScrollPane.__init__(self)
+		self.__listModel = swing.DefaultListModel()
+		self.__list = swing.JList(self.__listModel)
+		self.__list.cellRenderer = self.__Renderer()
+		
+		#test add
+		self.__listModel.addElement(self.__MiniMondrian())
+		
+		self.setViewportView(self.__list)
+		self.preferredSize = awt.Dimension(80, 480)
+		
 class Canvas(swing.JPanel):
 	def __init__(self):
 		swing.JPanel.__init__(self)
@@ -339,6 +366,28 @@ class ControlPane(swing.JPanel):
 	def __next_paint(self):
 		mondrian_instance.refresh()
 		self.getParent().repaint()
+
+class ControlMenu(swing.JMenuBar):
+	def __init__(self):
+		swing.JMenuBar.__init__(self)
+		
+		m_file = swing.JMenu("File")
+		m_evolution = swing.JMenu("Evolution")
+		m_about = swing.JMenu("about")
+		
+		for m in (m_file, m_evolution, m_about):
+			self.add(m)
+		
+class StatusBar(swing.JTextField):
+	def __init__(self):
+		swing.JTextField.__init__(self)
+		self.editable = 0
+		
+	def show_message(self, txt):
+		self.text = txt
+	
+	def clear_message():
+		self.show_message("")
 		
 class GlobalController:
 	
@@ -386,16 +435,33 @@ class GlobalController:
 mondrian_instance = Mondrian()
 controller = GlobalController()
 
+#global GUI instance
+gui_canvas = Canvas()
+gui_control = ControlPane()
+gui_miniView = MiniView()
+gui_statusBar = StatusBar()
+gui_menu = ControlMenu()
+
+#Assemble gui elements
 def start_window():
 	root = swing.JFrame(title = 'Darwindrian - prototype')
-	canvas = Canvas()
-	control = ControlPane()
-	
 	content = swing.JPanel(layout = awt.BorderLayout())
-	content.add(canvas, awt.BorderLayout.CENTER)
-	content.add(control, awt.BorderLayout.SOUTH)
+	content.add(gui_canvas, awt.BorderLayout.CENTER)
+	content.add(gui_control, awt.BorderLayout.SOUTH)
 	
-	root.contentPane = content
+	#Issue split bar
+	split = swing.JSplitPane(swing.JSplitPane.HORIZONTAL_SPLIT)
+	split.setLeftComponent(gui_miniView)
+	split.setRightComponent(content)
+	
+	#Issue whole arrangment
+	top = swing.JPanel(layout = awt.BorderLayout())
+	
+	top.add(split, awt.BorderLayout.CENTER)
+	top.add(gui_statusBar, awt.BorderLayout.SOUTH)
+	top.add(gui_menu, awt.BorderLayout.NORTH)
+	
+	root.contentPane = top
 	root.visible = 1
 	root.resizable = 0
 	root.defaultCloseOperation = swing.JFrame.EXIT_ON_CLOSE
