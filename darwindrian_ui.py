@@ -11,7 +11,7 @@ from darwindrian_controller import *
 
 graph_history = []
 
-class MiniView(swing.JScrollPane):
+class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 	
 	class __Renderer(swing.ListCellRenderer):
 		def __init__(self):
@@ -60,7 +60,7 @@ class MiniView(swing.JScrollPane):
 		self.__listModel = swing.DefaultListModel()
 		self.__list = swing.JList(self.__listModel)
 		self.__list.cellRenderer = self.__Renderer()
-		
+		self.__list.addListSelectionListener(self)
 		#test add
 		#self.__listModel.addElement(self.__MiniMondrian())
 		
@@ -71,6 +71,14 @@ class MiniView(swing.JScrollPane):
 	def add_mini_view(self, graph):
 		mini = self.__MiniMondrian(graph)
 		self.__listModel.addElement(mini)
+		
+	def valueChanged(self, e):
+		self.__display_selected()
+		
+	def __display_selected(self):
+		index = self.__list.getSelectedIndex()
+		graph = graph_history[index]
+		gui_canvas.set_graph(graph)
 		
 class Canvas(swing.JPanel):
 	def __init__(self):
@@ -85,6 +93,7 @@ class Canvas(swing.JPanel):
 		
 	def set_graph(self, graph):
 		self.__current_graph = graph
+		self.repaint()
 	
 	def get_graph(self, graph):
 		return self.__current_graph
@@ -105,22 +114,7 @@ class Canvas(swing.JPanel):
 		for l in self.__current_graph.lines:
 			g.setColor(BLACK)
 			g.draw(l)
-		
-		#debug line
-		if not debug:
-			return
 			
-		g.setStroke(self.__rec_stroke)
-		for l in mondrian_instance.get_debug_lines():
-			g.setColor(awt.Color.GRAY)
-			g.draw(l)
-		
-		g.setStroke(self.__line_stroke)
-		for l in mondrian_instance.get_border_lines():
-			#g.setColor(awt.Color.RED)
-			#g.draw(l)
-			pass
-	
 	def __save_as(self):
 		#f = io.File(filename)
 		#out = ImageIO.createImageOutputStream(f)
@@ -181,9 +175,8 @@ class ControlPane(swing.JPanel):
 		global graph_history;
 		chromosome = ChromoManager.get_next_chromosome()
 		graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
-		gui_canvas.set_graph(graph)
-		gui_canvas.repaint()
 		graph_history.append(graph)
+		gui_canvas.set_graph(graph)
 		gui_miniView.add_mini_view(graph)
 		
 #This class must be instanized after all other gui elements
