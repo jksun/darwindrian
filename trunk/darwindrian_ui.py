@@ -6,6 +6,7 @@ from java.awt import image
 from java.awt.event import *
 from javax.imageio import ImageIO
 
+from java.lang import System
 from darwindrian_geom import *
 from darwindrian_controller import *
 
@@ -115,7 +116,7 @@ class Canvas(swing.JPanel):
 			g.setColor(BLACK)
 			g.draw(l)
 			
-	def __save_as(self):
+	def save_as(self):
 		#f = io.File(filename)
 		#out = ImageIO.createImageOutputStream(f)
 		#im = image.BufferedImage()
@@ -138,11 +139,11 @@ class Canvas(swing.JPanel):
 		
 	def __load_popup_menu(self):
 		self.__popup = swing.JPopupMenu()
-		self.__saveas_b = swing.JMenuItem('Save as png...')
+		self.__saveas_b = swing.JMenuItem('Save as PNG...')
 		self.__popup.add(self.__saveas_b)
 		
 		controller.add_mouse_action(self, self.__popingup, 'Clicked')
-		controller.add_action(self.__saveas_b, self.__save_as)
+		controller.add_action(self.__saveas_b, self.save_as)
 		
 	def __popingup(self, e):
 		if e.getButton() == MouseEvent.BUTTON3:
@@ -186,8 +187,28 @@ class ControlMenu(swing.JMenuBar):
 		
 		#init menus
 		m_file = swing.JMenu("File")
+		mi_save_as = swing.JMenuItem("Save as PNG...")
+		controller.add_action(mi_save_as, gui_canvas.save_as)
+		sp = swing.JSeparator()
+		mi_exit = swing.JMenuItem("Exit")
+		controller.add_action(mi_exit, System.exit, 0)
+		for m in (mi_save_as, sp, mi_exit):
+			m_file.add(m)
+		
 		m_evolution = swing.JMenu("Evolution")
+		mi_reset = swing.JMenuItem("Reset evolution")
+		mi_next = swing.JMenuItem("Next graph")
+		controller.add_action(mi_next, gui_control.next_paint)
+		sp = swing.JSeparator()
+		mi_info = swing.JMenuItem("Show evolution info...")
+		
+		for m in (mi_reset, mi_next, sp, mi_info):
+			m_evolution.add(m)
+			
 		m_about = swing.JMenu("about")
+		mi_about = swing.JMenuItem("About Darwindrian")
+		for m in [mi_about]:
+			m_about.add(m)
 		
 		for m in (m_file, m_evolution, m_about):
 			self.add(m)
