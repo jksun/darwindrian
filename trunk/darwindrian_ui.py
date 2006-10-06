@@ -5,9 +5,6 @@ from java.awt import geom
 from java.awt import image
 from java.awt.event import *
 from javax.imageio import ImageIO
-from java.lang import NullPointerException
-from darwindrian_chromosome import *
-from darwindrian_color_sample import *
 
 from prototype_darwindrian import *
 

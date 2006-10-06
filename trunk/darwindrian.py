@@ -1,4 +1,3 @@
-from prototype_darwindrian import *
 from darwindrian_ui import *
 
 #Assemble gui elements
@@ -31,11 +30,6 @@ def start_window():
 	
 def testing():
 	if __name__ == '__main__':
-		#try:
 		start_window()
-		#except NullPointerException, e1:
-		#	print 'Warning: null pointer exception detected'
-		#except Exception, e2:
-		#	print 'Warning: Exception detected:',e2
 #run
 testing()
