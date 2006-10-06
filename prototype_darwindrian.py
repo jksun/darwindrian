@@ -265,7 +265,15 @@ class MiniView(swing.JScrollPane):
 			pass
 			
 		def getListCellRendererComponent(self, ls, value, index, selected, cellHasFocus):
-			return value
+			#Wrapper pane
+			wrapper = swing.JPanel(layout = awt.FlowLayout(awt.FlowLayout.CENTER))
+			wrapper.add(value)
+			wrapper.preferredSize = awt.Dimension(100,90)
+			
+			if selected:
+				wrapper.background = awt.Color.GRAY
+				
+			return wrapper
 	
 	class __MiniMondrian(swing.JPanel):
 		def __init__(self, graph):
@@ -304,7 +312,7 @@ class MiniView(swing.JScrollPane):
 		#self.__listModel.addElement(self.__MiniMondrian())
 		
 		self.setViewportView(self.__list)
-		self.preferredSize = awt.Dimension(90, 480)
+		#self.minimumSize = awt.Dimension(80, 480)
 		
 		
 	def add_mini_view(self, graph):
