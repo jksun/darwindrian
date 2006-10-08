@@ -9,14 +9,14 @@ def start_window():
 	
 	#Issue split bar
 	split = swing.JSplitPane(swing.JSplitPane.HORIZONTAL_SPLIT)
-	split.setLeftComponent(gui_miniView)
+	split.setLeftComponent(gui_mini_view)
 	split.setRightComponent(content)
 	
 	#Issue whole arrangment
 	top = swing.JPanel(layout = awt.BorderLayout())
 	
 	top.add(split, awt.BorderLayout.CENTER)
-	top.add(gui_statusBar, awt.BorderLayout.SOUTH)
+	top.add(gui_status_bar, awt.BorderLayout.SOUTH)
 	top.add(gui_menu, awt.BorderLayout.NORTH)
 	
 	root.contentPane = top
@@ -25,8 +25,7 @@ def start_window():
 	root.defaultCloseOperation = swing.JFrame.EXIT_ON_CLOSE
 	root.pack()
 	
-	#generate first Mondrian graph
-	gui_control.next_paint()
+	gui_clear_graph()
 	
 def testing():
 	if __name__ == '__main__':
