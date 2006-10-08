@@ -1,3 +1,7 @@
+#GUI module of Darwindrian.
+#API used: java Swing/awt
+#Author: Jian Yin Shen
+
 from javax import swing
 from java import awt
 from java import io
@@ -26,7 +30,8 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 			
 			if selected:
 				wrapper.background = awt.Color.GRAY
-				
+			
+			value.gray_scale = selected	
 			return wrapper
 	
 	class __MiniMondrian(swing.JPanel):
@@ -35,6 +40,7 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 			self.preferredSize = awt.Dimension(80,80)
 			self.background = WHITE
 			self.__graph = graph
+			self.gray_scale = 0
 			
 		def paint(self,g):
 			swing.JPanel.paint(self, g)
@@ -45,9 +51,12 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 			mini_y = float(self.preferredSize.height)
 			g.scale(mini_x/canvas_x, mini_y/canvas_y)
 			
-			#g.setStroke(self.__rec_stroke)
 			for r in self.__graph.rectangles:
-				g.setColor(r[1])
+				
+				if self.gray_scale:
+					g.setColor(r[1])
+				else:
+					g.setColor(awt.Color.LIGHT_GRAY)
 				g.fill(r[0])
 				#draw lines
 				#g.setStroke(self.__line_stroke)
@@ -62,11 +71,8 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 		self.__list = swing.JList(self.__listModel)
 		self.__list.cellRenderer = self.__Renderer()
 		self.__list.addListSelectionListener(self)
-		#test add
-		#self.__listModel.addElement(self.__MiniMondrian())
 		
 		self.setViewportView(self.__list)
-		#self.minimumSize = awt.Dimension(80, 480)
 		
 		
 	def add_mini_view(self, graph):
@@ -117,9 +123,6 @@ class Canvas(swing.JPanel):
 			g.draw(l)
 			
 	def save_as(self):
-		#f = io.File(filename)
-		#out = ImageIO.createImageOutputStream(f)
-		#im = image.BufferedImage()
 		print 'invoked save as'
 		jc = swing.JFileChooser()
 		resp = jc.showSaveDialog(self)
@@ -205,7 +208,7 @@ class ControlMenu(swing.JMenuBar):
 		for m in (mi_reset, mi_next, sp, mi_info):
 			m_evolution.add(m)
 			
-		m_about = swing.JMenu("about")
+		m_about = swing.JMenu("Help")
 		mi_about = swing.JMenuItem("About Darwindrian")
 		for m in [mi_about]:
 			m_about.add(m)
