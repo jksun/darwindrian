@@ -31,7 +31,7 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 			if selected:
 				wrapper.background = awt.Color.GRAY
 			
-			value.gray_scale = selected	
+			value.gray_scale = selected
 			return wrapper
 	
 	class __MiniMondrian(swing.JPanel):
@@ -78,16 +78,31 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 	def add_mini_view(self, graph):
 		mini = self.__MiniMondrian(graph)
 		self.__listModel.addElement(mini)
+		self.__list.setSelectedIndex(self.__listModel.size()-1)
+	
+	def clear(self):
+		self.__listModel.clear()
 		
 	def valueChanged(self, e):
 		self.__display_selected()
 		
 	def __display_selected(self):
 		index = self.__list.getSelectedIndex()
-		graph = graph_history[index]
+		if index < 0:
+			graph = None
+		else:
+			graph = graph_history[index]
 		gui_canvas.set_graph(graph)
 		
 class Canvas(swing.JPanel):
+	
+	class NameFileFilter(swing.filechooser.FileFilter):
+		def getDescription(self):
+			return "PNG file"
+		def accept(self, file):
+			name = file.getName()
+			return name.lower().find('.png' ) <> -1 or file.isDirectory()
+			
 	def __init__(self):
 		swing.JPanel.__init__(self)
 		global mondrian_instance
@@ -100,6 +115,7 @@ class Canvas(swing.JPanel):
 		
 	def set_graph(self, graph):
 		self.__current_graph = graph
+		
 		self.repaint()
 	
 	def get_graph(self, graph):
@@ -123,14 +139,14 @@ class Canvas(swing.JPanel):
 			g.draw(l)
 			
 	def save_as(self):
-		print 'invoked save as'
 		jc = swing.JFileChooser()
+		fl = self.NameFileFilter()
+		jc.setFileFilter(fl)
 		resp = jc.showSaveDialog(self)
 		if resp == swing.JFileChooser.APPROVE_OPTION:
 			self.__output_image(jc.getSelectedFile())
 	
 	def __output_image(self, f):
-		print 'saving image:',f.getPath()
 		out = io.FileOutputStream(f)
 		size = self.preferredSize
 		im = image.BufferedImage(size.width, size.height, image.BufferedImage.TYPE_INT_RGB)
@@ -138,19 +154,19 @@ class Canvas(swing.JPanel):
 		self.paint(g2d)
 		ImageIO.write(im,'png',out)
 		out.close()
-		print 'saving image done'
+		gui_status_bar.show_message("Image saved.")
 		
 	def __load_popup_menu(self):
-		self.__popup = swing.JPopupMenu()
+		self.popup = swing.JPopupMenu()
 		self.__saveas_b = swing.JMenuItem('Save as PNG...')
-		self.__popup.add(self.__saveas_b)
+		self.popup.add(self.__saveas_b)
 		
 		controller.add_mouse_action(self, self.__popingup, 'Clicked')
 		controller.add_action(self.__saveas_b, self.save_as)
 		
 	def __popingup(self, e):
-		if e.getButton() == MouseEvent.BUTTON3:
-			self.__popup.show(e.getComponent(), e.getX(), e.getY())
+		if e.getButton() == MouseEvent.BUTTON3 and self.__current_graph <> None:
+			self.popup.show(e.getComponent(), e.getX(), e.getY())
 					
 class ControlPane(swing.JPanel):
 	def __init__(self):
@@ -166,8 +182,10 @@ class ControlPane(swing.JPanel):
 			b = swing.JRadioButton(text)
 			b.setActionCommand(text)
 			return b
+		
+		self.__r_options = (rb('Structure'), rb('Color'), rb('Both'), rb('None'))
 			
-		for b in (rb('Structure'), rb('Color'), rb('Both'), rb('None')):
+		for b in self.__r_options:
 			self.add(b)
 			self.__group.add(b)
 			
@@ -176,13 +194,14 @@ class ControlPane(swing.JPanel):
 		
 	
 	def next_paint(self):
-		global graph_history;
 		chromosome = ChromoManager.get_next_chromosome()
 		graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
-		graph_history.append(graph)
-		gui_canvas.set_graph(graph)
-		gui_miniView.add_mini_view(graph)
-		
+		gui_next_graph(graph)
+	
+	def enable_rating(self, enable):
+		for b in self.__r_options:
+			b.setEnabled(enable)
+
 #This class must be instanized after all other gui elements
 class ControlMenu(swing.JMenuBar):
 	def __init__(self):
@@ -190,19 +209,24 @@ class ControlMenu(swing.JMenuBar):
 		
 		#init menus
 		m_file = swing.JMenu("File")
-		mi_save_as = swing.JMenuItem("Save as PNG...")
-		controller.add_action(mi_save_as, gui_canvas.save_as)
+		self.mi_save_as = swing.JMenuItem("Save as PNG...")
+		controller.add_action(self.mi_save_as, gui_canvas.save_as)
 		sp = swing.JSeparator()
+		
 		mi_exit = swing.JMenuItem("Exit")
 		controller.add_action(mi_exit, System.exit, 0)
-		for m in (mi_save_as, sp, mi_exit):
+		
+		for m in (self.mi_save_as, sp, mi_exit):
 			m_file.add(m)
 		
 		m_evolution = swing.JMenu("Evolution")
 		mi_reset = swing.JMenuItem("Reset evolution")
+		controller.add_action(mi_reset, gui_clear_graph)
+		
 		mi_next = swing.JMenuItem("Next graph")
 		controller.add_action(mi_next, gui_control.next_paint)
 		sp = swing.JSeparator()
+		
 		mi_info = swing.JMenuItem("Show evolution info...")
 		
 		for m in (mi_reset, mi_next, sp, mi_info):
@@ -227,10 +251,36 @@ class StatusBar(swing.JTextField):
 	def clear_message():
 		self.show_message("")
 		
-		
+
+#static methods
+
+def gui_enable_save(enable):
+	gui_menu.mi_save_as.enabled = enable
+
+def gui_clear_graph():
+	global graph_history
+	graph_history = []
+	gui_mini_view.clear()
+	gui_canvas.set_graph(None)
+	gui_control.enable_rating(0)
+	gui_status_bar.show_message("Click 'see next' to evolute graphs.")
+	gui_enable_save(0)
+
+def gui_next_graph(graph):
+	global graph_history
+	graph_history.append(graph)
+	gui_mini_view.add_mini_view(graph)
+	gui_canvas.set_graph(graph)
+	gui_control.enable_rating(1)
+	gui_status_bar.show_message("New graph generated.")
+	gui_enable_save(1)
+
+
 #global GUI instance
 gui_canvas = Canvas()
 gui_control = ControlPane()
-gui_miniView = MiniView()
-gui_statusBar = StatusBar()
+gui_mini_view = MiniView()
+gui_status_bar = StatusBar()
 gui_menu = ControlMenu()
+
+
