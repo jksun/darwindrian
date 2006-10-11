@@ -18,7 +18,7 @@ Characteristics
 
 Myself
 ------
-Ability of fast learning and quick understanding in new technologies; talent and passion in software designing and programming; hard working; nice teamwork spirits
+Ability of fast learning and quick understanding in new technologies; talent and passion in software designing and programming; hard working; nice teamwork spirits.
 
 Working Environment Demanded
 ----------------------------
@@ -38,7 +38,7 @@ Secondary programming languages
 Perl, PHP, Scheme/Lisp, C
 
 Operation systems
-----------------
+-----------------
 Linux (SuSE, Debian/Ubuntu)
 FreeBSD (MacOS X)
 
@@ -65,12 +65,12 @@ The project worked on: Wuerth Phoenix ERP 3.0 Milestone 1 - 4
 Sourcecode Works
 ----------------
 
-Darwindrian
+Darwindrian (language: JPython)
 -----------
 An AI program that produces Neo-Plastic artworks by utilizing an interactive genetic algorithm
 web site: http://code.google.com/p/darwindrian/
 
-One-row Fibonacci
+One-row Fibonacci (language: Ruby)
 -----------------
 An one-row Ruby program that prints fibonacci sequence:
 
@@ -94,15 +94,12 @@ Graduation Thesis
 -----------------
 "Cyber-Genetic Neo-Plasticism: An AI program Creating Mondrian-like Paintings by using Interactive Bacterial Evolution Algorithm"
 
-Transcript
+Transcript (so far)
 ----------
 
 HD = High Distinction
 D = Distinction
 C = Credit
-
-Algorithm			N/A
-eCommerce			N/A
 
 Relational Databases		D
 Human-Computer Interface	D
