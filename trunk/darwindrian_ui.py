@@ -95,7 +95,7 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 		gui_canvas.set_graph(graph)
 		
 class Canvas(swing.JPanel):
-	
+	'''GUI component which is responsible for rendering pictures'''
 	class NameFileFilter(swing.filechooser.FileFilter):
 		def getDescription(self):
 			return "PNG file"
@@ -169,6 +169,7 @@ class Canvas(swing.JPanel):
 			self.popup.show(e.getComponent(), e.getX(), e.getY())
 					
 class ControlPane(swing.JPanel):
+	'''Contains GUI control elements'''
 	def __init__(self):
 		swing.JPanel.__init__(self)
 		self.layout = awt.FlowLayout(awt.FlowLayout.RIGHT)
@@ -252,7 +253,7 @@ class StatusBar(swing.JTextField):
 		self.show_message("")
 		
 
-#static methods
+#static methods about interface control
 
 def gui_enable_save(enable):
 	gui_menu.mi_save_as.enabled = enable

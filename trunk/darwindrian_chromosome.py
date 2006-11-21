@@ -1,7 +1,7 @@
 #Darwindrian: Prototype
-#Generic related module
+#Genetic related module
 #Related article: Cyber-Genetic Neo-Plasticism
-#
+#Current status: theoritical development
 #Author: Jian Yin Shen, ANU
 
 import random
