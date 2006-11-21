@@ -1,3 +1,5 @@
+#!/usr/bin/jython
+
 from darwindrian_ui import *
 
 #Assemble gui elements
