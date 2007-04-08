@@ -12,6 +12,7 @@ from darwindrian_color_sample import *
 #50%
 CROSS_POINT = 0.5
 COMPLEXITY = 4
+POPULATION = 100
 
 
 #Chromosome pieces
@@ -80,12 +81,16 @@ test()
 
 class Chromosome:
 	
-	def __init__(self):
+	def __init__(self, \
+		g1 = get_chromo_group_A(), \
+		g2 = get_chromo_group_B(), \
+		g3 = [], \
+		g4 = [])
 		
-		self.__g1 = get_chromo_group_A()
-		self.__g2 = get_chromo_group_B()
-		self.__g3 = []
-		self.__g4 = []
+		self.__g1 = g1
+		self.__g2 = g2
+		self.__g3 = g3
+		self.__g4 = g4
 		
 		#fitness value from 1~10
 		self.fitness = 5
@@ -96,6 +101,13 @@ class Chromosome:
 		self.__structure_dist = \
 			{'Cross':0.0, 'Nodal':0.2, 'Terminal':0.9, 'OnLine':0.3, 'RightAngle':1.0, 'Initial':1.0}
 	
+			
+	def g1(self):
+		return self.__g1
+		
+	def g2(self):
+		return self.__g2
+			
 	def have_more_line(self, node):
 		probability = self.__structure_dist[node.get_type()]
 		return luck(probability)
@@ -114,31 +126,40 @@ class Chromosome:
 		return result
 		
 	def cross_over(self, another):
-		pass
+		_g1 = cross_over(self.g1(), another.g1())
+		_g2 = cross_over(self.g2(), another.g2())
+		return Chromosome(_g1, _g2)
 
 class EvolutionManager:
 	
 	def __init__(self):
-		__current = [];
-		__next = [];
-		pass
+		self.__current = [];
+		self.__history = [];
+		
 	
-	def new_generation():
-		pass
+	def new_generation(self):
+		self.__current = []
+		for i in range(0, POPULATION):
+			self.__current.append(Chromosome())
 	
-	def next_generation():
-		if(len(__current) <= -1):
+	def next_generation(self):
+		_next = []
+		if(len(self.__current) <= 1):
 			print "No more samples in current generation"
 			return
 			
-		for i in range(-1, len(__current)-1):
-			__next.append(__current[i].cross_over(__current[i+1]))
+		for i in range(-1, len(self.__current)-1):
+			_next.append(self.__current[i].cross_over(self.__current[i+1]))
+		
+		self.__history.append(self.__current)
+		self.__current = _next
 	
-	def evaluate(fitness_function):
-		for c in __current:
+	def evaluate(self.fitness_function):
+		for c in self.__current:
 			fitness_function(c)
-		pass
 	
+	def sample(self):
+		return self.__current[0]
 	
 class ChromosomeManager:
 	def __init__(self):
@@ -191,3 +212,6 @@ def search_rectangles(nodes):
 		
 	print 'rec found:',len(found)
 	return found
+	
+#Global instances
+evolution = EvolutionManager()
