@@ -5,10 +5,91 @@
 #Author: Jian Yin Shen, ANU
 
 import random
+import math
 from darwindrian_color_sample import *
 
+#initial arguments
+#50%
+CROSS_POINT = 0.5
+COMPLEXITY = 4
+
+
+#Chromosome pieces
+
+def switch(point):
+	temp = point.y
+	point.y = point.x
+	point.x = temp
+	return point
+
+def uneven(point):
+	point.x = point.x /2
+	point.y = point.y*2
+	return point
+
+def multi(point):
+	a = point.x * point.y
+	b = 1
+	if point.y <> 0.0:
+		b = point.x/point.y
+		
+	point.x = a
+	point.y = b
+	return point
+
+def balance(point):
+	a = (point.x + point.y)/2
+	b = math.sqrt(point.x * point.y)
+	point.x = a
+	point.y = b
+	return point
+
+def get_chromo_group_A():
+	lengh = 8
+	result = []
+	for i in range(0, lengh):
+		result.append(random.choice([switch,uneven,multi, balance]))
+	return result
+
+def get_chromo_group_B():
+	length = 4*COMPLEXITY
+	result = []
+	for i in range(0, length):
+		result.append(random.choice(['East','North','West','South',None, None]))
+	return result
+
+	
+def cross_over(a, b):
+	cp = int(len(a)*CROSS_POINT)
+	_new = a[0:cp] + b[cp:]
+	return _new
+	
+#Very simple class for point description
+class point:
+	def __init__(self,x,y):
+		self.x = x
+		self.y = y
+		
+
+def test():
+	a = get_chromo_group_B()
+	b = get_chromo_group_B()
+	print cross_over(a,b)
+	
+test()
+
 class Chromosome:
+	
 	def __init__(self):
+		
+		self.__g1 = get_chromo_group_A()
+		self.__g2 = get_chromo_group_B()
+		self.__g3 = []
+		self.__g4 = []
+		
+		#fitness value from 1~10
+		self.fitness = 5
+		
 		self.complexity = 3 #default
 		self.loop = 4 
 		#Possibility value for each node type to have 1 more line
@@ -31,6 +112,33 @@ class Chromosome:
 			result.append((random.choice(all_avail),random.choice([RED, BLUE, YELLOW])))
 			
 		return result
+		
+	def cross_over(self, another):
+		pass
+
+class EvolutionManager:
+	
+	def __init__(self):
+		__current = [];
+		__next = [];
+		pass
+	
+	def new_generation():
+		pass
+	
+	def next_generation():
+		if(len(__current) <= -1):
+			print "No more samples in current generation"
+			return
+			
+		for i in range(-1, len(__current)-1):
+			__next.append(__current[i].cross_over(__current[i+1]))
+	
+	def evaluate(fitness_function):
+		for c in __current:
+			fitness_function(c)
+		pass
+	
 	
 class ChromosomeManager:
 	def __init__(self):

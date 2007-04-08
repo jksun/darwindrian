@@ -233,9 +233,9 @@ class Mondrian:
 		
 		#each 'row' sort by x value
 		for row in points.values():
-			row.sort(lambda p1, p2: int(p1.x - p2.x))			
+			row.sort(lambda p1, p2: int(p1.x - p2.x))	
 		return points
-							
+		
 	#Borderlines not included
 	def get_lines(self):
 		borders = self.get_border_lines()
