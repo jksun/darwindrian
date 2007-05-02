@@ -85,7 +85,7 @@ class Chromosome:
 		g1 = get_chromo_group_A(), \
 		g2 = get_chromo_group_B(), \
 		g3 = [], \
-		g4 = [])
+		g4 = []):
 		
 		self.__g1 = g1
 		self.__g2 = g2
@@ -154,9 +154,8 @@ class EvolutionManager:
 		self.__history.append(self.__current)
 		self.__current = _next
 	
-	def evaluate(self.fitness_function):
-		for c in self.__current:
-			fitness_function(c)
+	def evaluate():
+		pass
 	
 	def sample(self):
 		return self.__current[0]
