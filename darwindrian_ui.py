@@ -9,7 +9,7 @@ from java.awt import geom
 from java.awt import image
 from java.awt.event import *
 from javax.imageio import ImageIO
-
+from java.lang import String
 from java.lang import System
 from darwindrian_geom import *
 from darwindrian_controller import *
@@ -103,6 +103,13 @@ class Canvas(swing.JPanel):
 			name = file.getName()
 			return name.lower().find('.png' ) <> -1 or file.isDirectory()
 			
+	class TxtFileFilter(swing.filechooser.FileFilter):
+		def getDescription(self):
+			return "txt file"
+		def accept(self, file):
+			name = file.getName()
+			return name.lower().find('.txt' ) <> -1 or file.isDirectory()
+			
 	def __init__(self):
 		swing.JPanel.__init__(self)
 		global mondrian_instance
@@ -146,6 +153,52 @@ class Canvas(swing.JPanel):
 		if resp == swing.JFileChooser.APPROVE_OPTION:
 			self.__output_image(jc.getSelectedFile())
 	
+			
+	def dump_data(self):
+		
+		#Popup dialogs
+		jc = swing.JFileChooser()
+		fl = self.TxtFileFilter()
+		jc.setFileFilter(fl)
+		resp = jc.showSaveDialog(self)
+		if resp == swing.JFileChooser.APPROVE_OPTION:
+			self.__output_raw_data(jc.getSelectedFile())
+	
+	def __output_raw_data(self, f):
+		global graph_history
+		#Use python impl
+		path = f.getAbsolutePath()
+		_file = open(path, 'w')
+		
+		number = 0
+		for graph in graph_history:
+			_file.write("graph: ")
+			_file.write(str(number))
+			_file.write('\n')
+			
+			for line in graph.lines:
+				_file.write("line: ")
+				_file.write(str(line.getX1())+' ')
+				_file.write(str(line.getY1())+' ')
+				_file.write(str(line.getX2())+' ')
+				_file.write(str(line.getY2())+'\n')
+			
+			for rec in graph.rectangles:
+				_file.write("Rectangle: ")
+				_file.write(str(rec[0].getX())+' ')
+				_file.write(str(rec[0].getY())+' ')
+				_file.write(str(rec[0].getWidth())+' ')
+				_file.write(str(rec[0].getHeight())+'\n')
+				
+				_file.write("color(RGB): ")
+				_file.write(str(rec[1].getRed())+' ')
+				_file.write(str(rec[1].getGreen())+' ')
+				_file.write(str(rec[1].getBlue())+'\n')
+			number = number + 1
+			_file.write('\n\n')
+		
+		_file.close()
+	
 	def __output_image(self, f):
 		out = io.FileOutputStream(f)
 		size = self.preferredSize
@@ -161,8 +214,13 @@ class Canvas(swing.JPanel):
 		self.__saveas_b = swing.JMenuItem('Save as PNG...')
 		self.popup.add(self.__saveas_b)
 		
+		self.__dump_data = swing.JMenuItem("Dump raw data as txt...")
+		self.popup.add(self.__dump_data)
+
 		controller.add_mouse_action(self, self.__popingup, 'Clicked')
+		
 		controller.add_action(self.__saveas_b, self.save_as)
+		controller.add_action(self.__dump_data, self.dump_data)
 		
 	def __popingup(self, e):
 		if e.getButton() == MouseEvent.BUTTON3 and self.__current_graph <> None:
@@ -174,7 +232,7 @@ class ControlPane(swing.JPanel):
 		swing.JPanel.__init__(self)
 		self.layout = awt.FlowLayout(awt.FlowLayout.RIGHT)
 		
-		self.__next_b = swing.JButton('See next')
+		self.__next_b = swing.JButton('See next 200')
 		self.add(swing.JLabel("You like? "))
 		self.__group = swing.ButtonGroup()
 		
@@ -195,9 +253,12 @@ class ControlPane(swing.JPanel):
 		
 	
 	def next_paint(self):
-		chromosome = ChromoManager.get_next_chromosome()
-		graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
-		gui_next_graph(graph)
+		i = 0
+		gui_status_bar.show_message("Generating pictures, please wait....")
+		for i in range(0, 200):
+			chromosome = ChromoManager.get_next_chromosome()
+			graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
+			gui_next_graph(graph)
 	
 	def enable_rating(self, enable):
 		for b in self.__r_options:
@@ -212,19 +273,23 @@ class ControlMenu(swing.JMenuBar):
 		m_file = swing.JMenu("File")
 		self.mi_save_as = swing.JMenuItem("Save as PNG...")
 		controller.add_action(self.mi_save_as, gui_canvas.save_as)
+		
+		self.mi_dump_data = swing.JMenuItem("Dump data as txt...")
+		controller.add_action(self.mi_dump_data, gui_canvas.dump_data)
+		
 		sp = swing.JSeparator()
 		
 		mi_exit = swing.JMenuItem("Exit")
 		controller.add_action(mi_exit, System.exit, 0)
 		
-		for m in (self.mi_save_as, sp, mi_exit):
+		for m in (self.mi_save_as, self.mi_dump_data, sp, mi_exit):
 			m_file.add(m)
 		
 		m_evolution = swing.JMenu("Evolution")
 		mi_reset = swing.JMenuItem("Reset evolution")
 		controller.add_action(mi_reset, gui_clear_graph)
 		
-		mi_next = swing.JMenuItem("Next graph")
+		mi_next = swing.JMenuItem("Next graph batch")
 		controller.add_action(mi_next, gui_control.next_paint)
 		sp = swing.JSeparator()
 		
@@ -257,6 +322,7 @@ class StatusBar(swing.JTextField):
 
 def gui_enable_save(enable):
 	gui_menu.mi_save_as.enabled = enable
+	gui_menu.mi_dump_data.enabled = enable
 
 def gui_clear_graph():
 	global graph_history
@@ -276,7 +342,7 @@ def gui_next_graph(graph):
 	gui_status_bar.show_message("New graph generated.")
 	gui_enable_save(1)
 
-
+		
 #global GUI instance
 gui_canvas = Canvas()
 gui_control = ControlPane()
