@@ -96,6 +96,7 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 		
 class Canvas(swing.JPanel):
 	'''GUI component which is responsible for rendering pictures'''
+			
 	class NameFileFilter(swing.filechooser.FileFilter):
 		def getDescription(self):
 			return "PNG file"
@@ -149,10 +150,24 @@ class Canvas(swing.JPanel):
 		jc = swing.JFileChooser()
 		fl = self.NameFileFilter()
 		jc.setFileFilter(fl)
+		jc.setSelectedFile(io.File('p'+str(graph_history.index(self.__current_graph)+1)+'.png'))
 		resp = jc.showSaveDialog(self)
 		if resp == swing.JFileChooser.APPROVE_OPTION:
 			self.__output_image(jc.getSelectedFile())
 	
+	def save_all(self):
+		global graph_history
+		
+		jc = swing.JFileChooser()
+		jc.setFileSelectionMode(swing.JFileChooser.DIRECTORIES_ONLY)
+		resp = jc.showSaveDialog(self)
+		if resp == swing.JFileChooser.APPROVE_OPTION:
+			count = 1
+			for graph in graph_history:
+				file_name = "p"+str(count)+".png"
+				self.set_graph(graph)
+				self.__output_image(io.File(jc.getSelectedFile().getAbsolutePath()+'/'+file_name))
+				count = count+1
 			
 	def dump_data(self):
 		
@@ -253,9 +268,9 @@ class ControlPane(swing.JPanel):
 		
 	
 	def next_paint(self):
-		i = 0
+		i = 1
 		gui_status_bar.show_message("Generating pictures, please wait....")
-		for i in range(0, 200):
+		for i in range(1, 201):
 			chromosome = ChromoManager.get_next_chromosome()
 			graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
 			gui_next_graph(graph)
@@ -277,12 +292,15 @@ class ControlMenu(swing.JMenuBar):
 		self.mi_dump_data = swing.JMenuItem("Dump data as txt...")
 		controller.add_action(self.mi_dump_data, gui_canvas.dump_data)
 		
+		self.mi_save_all = swing.JMenuItem("Save all as PNG...")
+		controller.add_action(self.mi_save_all, gui_canvas.save_all)
+		
 		sp = swing.JSeparator()
 		
 		mi_exit = swing.JMenuItem("Exit")
 		controller.add_action(mi_exit, System.exit, 0)
 		
-		for m in (self.mi_save_as, self.mi_dump_data, sp, mi_exit):
+		for m in (self.mi_save_as, self.mi_save_all, self.mi_dump_data, sp, mi_exit):
 			m_file.add(m)
 		
 		m_evolution = swing.JMenu("Evolution")
@@ -322,6 +340,7 @@ class StatusBar(swing.JTextField):
 
 def gui_enable_save(enable):
 	gui_menu.mi_save_as.enabled = enable
+	gui_menu.mi_save_all.enabled = enable
 	gui_menu.mi_dump_data.enabled = enable
 
 def gui_clear_graph():
