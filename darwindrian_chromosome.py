@@ -42,7 +42,8 @@ class Chromosome:
 
 		self.__structure_dist = \
 			{'Cross':0.0, 'Nodal':0.2, 'Terminal':0.9, 'OnLine':0.3, 'RightAngle':1.0, 'Initial':1.0}
-	
+		#Color distribution
+		self.__color_dist = {RED: self.__rand_d(), BLUE: self.__rand_d(), YELLOW: self.__rand_d()}
 	
 	def __rand_d(self):
 		v = []
@@ -85,8 +86,16 @@ class Chromosome:
 		if all_avail == []:
 			print 'warning: no rectangles found'
 			return []
-		for i in range(0,2):
-			result.append((random.choice(all_avail),random.choice([RED, BLUE, YELLOW])))
+		
+		scale_down(self.__color_dist)
+		while len(result != 2):
+			for k in self.__color_dist:
+				p = self.__color_dist[k]
+				if luck(p):
+					result.append(random.choice(all_avail), k)
+		
+		#for i in range(0,2):
+		#	result.append((random.choice(all_avail),random.choice([RED, BLUE, YELLOW])))
 			
 		return result
 		
