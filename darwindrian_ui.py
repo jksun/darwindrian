@@ -125,6 +125,8 @@ class Canvas(swing.JPanel):
 		self.__current_graph = graph
 		
 		self.repaint()
+		if graph != None:
+			gui_status_bar.show_message("Overall fitness:"+str((graph.chromosome.structure_fitness+graph.chromosome.color_fitness)/2.0))
 	
 	def get_graph(self):
 		return self.__current_graph
@@ -276,20 +278,18 @@ class ControlPane(swing.JPanel):
 		
 	def __like_structure(self):
 		gui_canvas.get_graph().chromosome.structure_fitness = gui_canvas.get_graph().chromosome.structure_fitness + 1
-		print 'Structure fitness: ',gui_canvas.get_graph().chromosome.structure_fitness
+		gui_status_bar.show_message('Structure fitness: '+str(gui_canvas.get_graph().chromosome.structure_fitness))
 	
 	def __like_color(self):
 		gui_canvas.get_graph().chromosome.color_fitness = gui_canvas.get_graph().chromosome.color_fitness + 1
-		print 'Color fitness: ',gui_canvas.get_graph().chromosome.color_fitness
+		gui_status_bar.show_message('Color fitness: '+str(gui_canvas.get_graph().chromosome.color_fitness))
 	
 	def __like_both(self):
-		gui_canvas.get_graph().chromosome.structure_fitness = gui_canvas.get_graph().chromosome.structure_fitness + 1
-		print 'Structure fitness: ',gui_canvas.get_graph().chromosome.structure_fitness
-		
-		gui_canvas.get_graph().chromosome.color_fitness = gui_canvas.get_graph().chromosome.color_fitness + 1
-		print 'Color fitness: ',gui_canvas.get_graph().chromosome.color_fitness
-		
-		
+		co = gui_canvas.get_graph().chromosome
+		co.structure_fitness = co.structure_fitness + 1
+		co.color_fitness = co.color_fitness + 1
+		gui_status_bar.show_message('overall rating: '+str((co.structure_fitness+co.color_fitness)/2.0))
+				
 	def next_paint(self):
 		i = 0
 		gui_status_bar.show_message("Generating pictures, please wait....")
