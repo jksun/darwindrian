@@ -12,7 +12,7 @@ from darwindrian_color_sample import *
 #50%
 CROSS_POINT = 0.5
 COMPLEXITY = 4
-POPULATION = 100
+POPULATION = 20
 
 
 
@@ -32,18 +32,19 @@ class Chromosome:
 	def __init__(self):
 		
 		#fitness value from 1~10
-		self.fitness = 5
+		self.color_fitness = 5
+		self.structure_fitness = 5
 		
 		self.complexity = 3 #Fixed
 		self.loop = 4  #fixed
 		
-		self.__direction_dist = \
+		self.direction_dist = \
 			{'East': self.__rand_d(),'West':self.__rand_d(),'South':self.__rand_d(),'North':self.__rand_d()}
 
-		self.__structure_dist = \
+		self.structure_dist = \
 			{'Cross':0.0, 'Nodal':0.2, 'Terminal':0.9, 'OnLine':0.3, 'RightAngle':1.0, 'Initial':1.0}
 		#Color distribution
-		self.__color_dist = {RED: random.uniform(1,10), BLUE: random.uniform(1,10), YELLOW: random.uniform(1,10)}
+		self.color_dist = {RED: random.uniform(1,10), BLUE: random.uniform(1,10), YELLOW: random.uniform(1,10)}
 	
 	def __rand_d(self):
 		v = []
@@ -53,7 +54,7 @@ class Chromosome:
 	
 	#loop: 0~3
 	def get_direction_by_loop(self, hvpoint, loop):
-		local_dist = self.__direction_dist.copy()
+		local_dist = self.direction_dist.copy()
 		for k in local_dist.keys():
 			if k not in hvpoint.get_aval_direction():
 				del(local_dist[k])
@@ -71,11 +72,11 @@ class Chromosome:
 	
 	def map_directions(self, hvpoint):
 		options = hvpoint.get_aval_direction()
-		for k in self.__direction_dist.keys():
+		for k in self.direction_dist.keys():
 			pass
 		
 	def have_more_line(self, node):
-		probability = self.__structure_dist[node.get_type()]
+		probability = self.structure_dist[node.get_type()]
 		return luck(probability)
 	
 	#return value structure:
@@ -87,10 +88,10 @@ class Chromosome:
 			print 'warning: no rectangles found'
 			return []
 		
-		scale_down(self.__color_dist)
+		scale_down(self.color_dist)
 		while 1:
-			for k in self.__color_dist.keys():
-				p = self.__color_dist[k]
+			for k in self.color_dist.keys():
+				p = self.color_dist[k]
 				if luck(p):	
 					result.append((random.choice(all_avail), k))
 				if len(result) >=2:
@@ -101,23 +102,39 @@ class Chromosome:
 		#return result
 		
 	def cross_over(self, another):
-		_g1 = cross_over(self.g1(), another.g1())
-		_g2 = cross_over(self.g2(), another.g2())
-		return Chromosome(_g1, _g2)
-
+		_new = Chromosome()
+		#cross direction distribution
+		_d_dist = self.direction_dist.copy()
+		for k in _d_dist.keys():
+			_d_dist[k][2:] = another.direction_dist[k][2:]
+		#cross color distribution
+		_c_dist = self.color_dist.copy()
+		#randomly choose a color  probability value to be replaced by another chromosome
+		chosen = random.choice(_c_dist.keys())
+		_c_dist[chosen] = another.color_dist[chosen]
+		
+		_new.direction_dist = _d_dist
+		_new.color_dist = _c_dist
+		return _new
+		
 class EvolutionManager:
 	
 	def __init__(self):
 		self.__current = [];
 		self.__history = [];
-		
+		self.__initial = 1
 	
 	def new_generation(self):
+		self.__initial = 0
 		self.__current = []
 		for i in range(0, POPULATION):
 			self.__current.append(Chromosome())
-	
+		return self.__current
+		
 	def next_generation(self):
+		if self.__initial:
+			return self.new_generation()
+			
 		_next = []
 		if(len(self.__current) <= 1):
 			print "No more samples in current generation"
@@ -126,15 +143,10 @@ class EvolutionManager:
 		for i in range(-1, len(self.__current)-1):
 			_next.append(self.__current[i].cross_over(self.__current[i+1]))
 		
-		self.__history.append(self.__current)
+		self.__history = self.__current
 		self.__current = _next
-	
-	def evaluate():
-		pass
-	
-	def sample(self):
-		return self.__current[0]
-	
+		return self.__current
+		
 class ChromosomeManager:
 	def __init__(self):
 		pass

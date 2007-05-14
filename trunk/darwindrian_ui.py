@@ -247,7 +247,7 @@ class ControlPane(swing.JPanel):
 		swing.JPanel.__init__(self)
 		self.layout = awt.FlowLayout(awt.FlowLayout.RIGHT)
 		
-		self.__next_b = swing.JButton('See next 20')
+		self.__next_b = swing.JButton('See next generation')
 		self.add(swing.JLabel("You like? "))
 		self.__group = swing.ButtonGroup()
 		
@@ -270,8 +270,8 @@ class ControlPane(swing.JPanel):
 	def next_paint(self):
 		i = 0
 		gui_status_bar.show_message("Generating pictures, please wait....")
-		for i in range(0, 20):
-			chromosome = ChromoManager.get_next_chromosome()
+		batch = evolution.next_generation()
+		for chromosome in batch:
 			graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
 			gui_next_graph(graph)
 	
