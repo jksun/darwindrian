@@ -126,7 +126,7 @@ class Canvas(swing.JPanel):
 		
 		self.repaint()
 	
-	def get_graph(self, graph):
+	def get_graph(self):
 		return self.__current_graph
 		
 	def paint(self,g):
@@ -248,7 +248,7 @@ class ControlPane(swing.JPanel):
 		self.layout = awt.FlowLayout(awt.FlowLayout.RIGHT)
 		
 		self.__next_b = swing.JButton('See next generation')
-		self.add(swing.JLabel("You like? "))
+		self.add(swing.JLabel("Like: "))
 		self.__group = swing.ButtonGroup()
 		
 		#radio buttons
@@ -257,8 +257,16 @@ class ControlPane(swing.JPanel):
 			b.setActionCommand(text)
 			return b
 		
-		self.__r_options = (rb('Structure'), rb('Color'), rb('Both'), rb('None'))
-			
+		stru = rb('Structure')
+		co = rb('Color')
+		both = rb('Both')
+		self.__r_options = (stru, co, both)
+
+		controller.add_action(stru, self.__like_structure)
+		controller.add_action(co, self.__like_color)
+		
+		controller.add_action(both, self.__like_both)
+		
 		for b in self.__r_options:
 			self.add(b)
 			self.__group.add(b)
@@ -266,7 +274,22 @@ class ControlPane(swing.JPanel):
 		self.add(self.__next_b)
 		controller.add_action(self.__next_b, self.next_paint)
 		
+	def __like_structure(self):
+		gui_canvas.get_graph().chromosome.structure_fitness = gui_canvas.get_graph().chromosome.structure_fitness + 1
+		print 'Structure fitness: ',gui_canvas.get_graph().chromosome.structure_fitness
 	
+	def __like_color(self):
+		gui_canvas.get_graph().chromosome.color_fitness = gui_canvas.get_graph().chromosome.color_fitness + 1
+		print 'Color fitness: ',gui_canvas.get_graph().chromosome.color_fitness
+	
+	def __like_both(self):
+		gui_canvas.get_graph().chromosome.structure_fitness = gui_canvas.get_graph().chromosome.structure_fitness + 1
+		print 'Structure fitness: ',gui_canvas.get_graph().chromosome.structure_fitness
+		
+		gui_canvas.get_graph().chromosome.color_fitness = gui_canvas.get_graph().chromosome.color_fitness + 1
+		print 'Color fitness: ',gui_canvas.get_graph().chromosome.color_fitness
+		
+		
 	def next_paint(self):
 		i = 0
 		gui_status_bar.show_message("Generating pictures, please wait....")
@@ -307,7 +330,7 @@ class ControlMenu(swing.JMenuBar):
 		mi_reset = swing.JMenuItem("Reset evolution")
 		controller.add_action(mi_reset, gui_clear_graph)
 		
-		mi_next = swing.JMenuItem("Next graph batch")
+		mi_next = swing.JMenuItem("Next generation")
 		controller.add_action(mi_next, gui_control.next_paint)
 		sp = swing.JSeparator()
 		
