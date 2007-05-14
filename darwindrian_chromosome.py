@@ -24,9 +24,6 @@ def scale_down(dist):
 	
 	return dist
 
-#test
-print scale_down({'a':1,'b':2})
-
 class Chromosome:
 	
 	def __init__(self):

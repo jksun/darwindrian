@@ -90,6 +90,7 @@ class MondrianGraph:
 	def __init__(self):
 		self.rectangles = None
 		self.lines = None
+		self.chromosome = None
 			
 class Mondrian:	
 	'''He who paints'''
@@ -199,6 +200,8 @@ class Mondrian:
 		graph = MondrianGraph()
 		graph.rectangles = self.get_rectangles()
 		graph.lines = self.get_lines()
+		
+		graph.chromosome = chromosome
 		return graph
 	
 	def get_border_lines(self):
