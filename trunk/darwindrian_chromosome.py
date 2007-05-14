@@ -29,8 +29,8 @@ class Chromosome:
 	def __init__(self):
 		
 		#fitness value from 1~10
-		self.color_fitness = 5
-		self.structure_fitness = 5
+		self.color_fitness = 5.0
+		self.structure_fitness = 5.0
 		
 		self.complexity = 3 #Fixed
 		self.loop = 4  #fixed
