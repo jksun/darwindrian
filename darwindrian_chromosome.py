@@ -15,99 +15,64 @@ COMPLEXITY = 4
 POPULATION = 100
 
 
-#Chromosome pieces
 
-def switch(point):
-	temp = point.y
-	point.y = point.x
-	point.x = temp
-	return point
-
-def uneven(point):
-	point.x = point.x /2
-	point.y = point.y*2
-	return point
-
-def multi(point):
-	a = point.x * point.y
-	b = 1
-	if point.y <> 0.0:
-		b = point.x/point.y
+def scale_down(dist):
+	_all = reduce(lambda x,y: x+y, dist.values())
+	for k in dist.keys():
 		
-	point.x = a
-	point.y = b
-	return point
-
-def balance(point):
-	a = (point.x + point.y)/2
-	b = math.sqrt(point.x * point.y)
-	point.x = a
-	point.y = b
-	return point
-
-def get_chromo_group_A():
-	lengh = 8
-	result = []
-	for i in range(0, lengh):
-		result.append(random.choice([switch,uneven,multi, balance]))
-	return result
-
-def get_chromo_group_B():
-	length = 4*COMPLEXITY
-	result = []
-	for i in range(0, length):
-		result.append(random.choice(['East','North','West','South',None, None]))
-	return result
-
+		dist[k] = float(dist[k])/float(_all)
 	
-def cross_over(a, b):
-	cp = int(len(a)*CROSS_POINT)
-	_new = a[0:cp] + b[cp:]
-	return _new
-	
-#Very simple class for point description
-class point:
-	def __init__(self,x,y):
-		self.x = x
-		self.y = y
-		
+	return dist
 
-def test():
-	a = get_chromo_group_B()
-	b = get_chromo_group_B()
-	print cross_over(a,b)
-	
-test()
+#test
+print scale_down({'a':1,'b':2})
 
 class Chromosome:
 	
-	def __init__(self, \
-		g1 = get_chromo_group_A(), \
-		g2 = get_chromo_group_B(), \
-		g3 = [], \
-		g4 = []):
-		
-		self.__g1 = g1
-		self.__g2 = g2
-		self.__g3 = g3
-		self.__g4 = g4
+	def __init__(self):
 		
 		#fitness value from 1~10
 		self.fitness = 5
 		
-		self.complexity = 3 #default
-		self.loop = 4 
-		#Possibility value for each node type to have 1 more line
+		self.complexity = 3 #Fixed
+		self.loop = 4  #fixed
+		
+		self.__direction_dist = \
+			{'East': self.__rand_d(),'West':self.__rand_d(),'South':self.__rand_d(),'North':self.__rand_d()}
+
 		self.__structure_dist = \
 			{'Cross':0.0, 'Nodal':0.2, 'Terminal':0.9, 'OnLine':0.3, 'RightAngle':1.0, 'Initial':1.0}
 	
-			
-	def g1(self):
-		return self.__g1
+	
+	def __rand_d(self):
+		v = []
+		for i in range(0, self.loop):
+			v.append(random.choice(range(1,11)))
+		return v
+	
+	#loop: 0~3
+	def get_direction_by_loop(self, hvpoint, loop):
+		local_dist = self.__direction_dist.copy()
+		for k in local_dist.keys():
+			if k not in hvpoint.get_aval_direction():
+				del(local_dist[k])
+			else:
+				local_dist[k] = local_dist[k][loop]
+		scale_down(local_dist)
+		#randomly choose a direction, according to their probability of being chosen
+		while 1:
+			unordered = local_dist.keys()
+			random.shuffle(unordered)
+			for k in unordered:
+				p = local_dist[k]
+				if luck(p):
+					return k
+	
+	def map_directions(self, hvpoint):
+		options = hvpoint.get_aval_direction()
+		for k in self.__direction_dist.keys():
+			pass
 		
-	def g2(self):
-		return self.__g2
-			
 	def have_more_line(self, node):
 		probability = self.__structure_dist[node.get_type()]
 		return luck(probability)

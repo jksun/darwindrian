@@ -141,16 +141,17 @@ class Mondrian:
 			random.shuffle(self.__points)
 			for p in self.__points:
 				if self.__chromosome.have_more_line(p):
-					self.__generate_one_line(p)
+					self.__generate_one_line(p, l)
 							
 		#eliminate all rightAngles
 		r_a = filter(lambda p: p.get_type() == 'RightAngle', self.__points)
 		print 'right angle:',len(r_a)
 		for right_angle_p in r_a:
-			self.__generate_one_line(right_angle_p)
+			self.__generate_one_line(right_angle_p, 0)
 			
-	def __generate_one_line(self, op):
-		d = random.choice(op.get_aval_direction())
+	def __generate_one_line(self, op, loop):
+		#d = random.choice(op.get_aval_direction())
+		d = self.__chromosome.get_direction_by_loop(op, loop)
 		op.emit_on_direction(d)
 		
 		endlengths = self.__find_end_lengths(op, d)
