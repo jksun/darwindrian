@@ -185,7 +185,7 @@ class Canvas(swing.JPanel):
 		path = f.getAbsolutePath()
 		_file = open(path, 'w')
 		
-		number = 0
+		number = 1
 		for graph in graph_history:
 			_file.write("graph: ")
 			_file.write(str(number))
@@ -247,7 +247,7 @@ class ControlPane(swing.JPanel):
 		swing.JPanel.__init__(self)
 		self.layout = awt.FlowLayout(awt.FlowLayout.RIGHT)
 		
-		self.__next_b = swing.JButton('See next 200')
+		self.__next_b = swing.JButton('See next 20')
 		self.add(swing.JLabel("You like? "))
 		self.__group = swing.ButtonGroup()
 		
@@ -268,9 +268,9 @@ class ControlPane(swing.JPanel):
 		
 	
 	def next_paint(self):
-		i = 1
+		i = 0
 		gui_status_bar.show_message("Generating pictures, please wait....")
-		for i in range(1, 201):
+		for i in range(0, 20):
 			chromosome = ChromoManager.get_next_chromosome()
 			graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
 			gui_next_graph(graph)
