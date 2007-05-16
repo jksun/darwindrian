@@ -28,11 +28,16 @@ def scale_down(dist):
 class RandomPoint:
   	def __init__(self):
 		self.x = random.randint(1,100)
-		self.y = random.randint(1,100) 
+		self.y = random.randint(1,100)
+		self.__scaled = 0
 	
 	def scale_upto(self, max_x, max_y):
+	  	if self.__scaled:
+		  	return
+
 	  	self.x = int((self.x/100.0)*max_x)
 		self.y = int((self.y/100.0)*max_y)
+		self.__scaled = 1
 	
 class Chromosome:
 	
@@ -136,6 +141,12 @@ class EvolutionManager:
 		self.__history = [];
 		self.__initial = 1
 	
+	def reset_generation(self):
+		self.__current = [];
+		self.__history = [];
+		self.__initial = 1
+	
+
 	def new_generation(self):
 		self.__initial = 0
 		self.__current = []
