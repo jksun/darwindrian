@@ -189,31 +189,37 @@ class Canvas(swing.JPanel):
 		_file = open(path, 'w')
 		
 		number = 1
-		for graph in graph_history:
-			_file.write("graph: ")
-			_file.write(str(number))
+		generation_number = 1
+		for graph_history in generation_history:
+		  	_file.write("generation: ")
+			_file.write(str(generation_number))
 			_file.write('\n')
+			for graph in graph_history:
+				_file.write("graph: ")
+				_file.write(str(number))
+				_file.write('\n')
 			
-			for line in graph.lines:
-				_file.write("line: ")
-				_file.write(str(line.getX1())+' ')
-				_file.write(str(line.getY1())+' ')
-				_file.write(str(line.getX2())+' ')
-				_file.write(str(line.getY2())+'\n')
+				for line in graph.lines:
+					_file.write("line: ")
+					_file.write(str(line.getX1())+' ')
+					_file.write(str(line.getY1())+' ')
+					_file.write(str(line.getX2())+' ')
+					_file.write(str(line.getY2())+'\n')
 			
-			for rec in graph.rectangles:
-				_file.write("Rectangle: ")
-				_file.write(str(rec[0].getX())+' ')
-				_file.write(str(rec[0].getY())+' ')
-				_file.write(str(rec[0].getWidth())+' ')
-				_file.write(str(rec[0].getHeight())+'\n')
+				for rec in graph.rectangles:
+					_file.write("Rectangle: ")
+					_file.write(str(rec[0].getX())+' ')
+					_file.write(str(rec[0].getY())+' ')
+					_file.write(str(rec[0].getWidth())+' ')
+					_file.write(str(rec[0].getHeight())+'\n')
 				
-				_file.write("color(RGB): ")
-				_file.write(str(rec[1].getRed())+' ')
-				_file.write(str(rec[1].getGreen())+' ')
-				_file.write(str(rec[1].getBlue())+'\n')
-			number = number + 1
-			_file.write('\n\n')
+					_file.write("color(RGB): ")
+					_file.write(str(rec[1].getRed())+' ')
+					_file.write(str(rec[1].getGreen())+' ')
+					_file.write(str(rec[1].getBlue())+'\n')
+				number = number + 1
+				_file.write('\n\n')
+			generation_number = generation_number + 1
 		
 		_file.close()
 	
@@ -292,7 +298,9 @@ class ControlPane(swing.JPanel):
 		gui_status_bar.show_message('overall rating: '+str(co.overall_fitness()))
 				
 	def next_paint(self):
+	  	gui_clear_graph()
 		global graph_history
+		global generation_history
 		i = 0
 		gui_status_bar.show_message("Generating pictures, please wait....")
 
@@ -300,6 +308,7 @@ class ControlPane(swing.JPanel):
 		for chromosome in batch:
 			graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
 			gui_next_graph(graph)
+		generation_history.append(graph_history)
 	
 	def enable_rating(self, enable):
 		for b in self.__r_options:
@@ -331,7 +340,7 @@ class ControlMenu(swing.JMenuBar):
 		
 		m_evolution = swing.JMenu("Evolution")
 		mi_reset = swing.JMenuItem("Reset evolution")
-		controller.add_action(mi_reset, gui_clear_graph)
+		controller.add_action(mi_reset, gui_clear_generation)
 		
 		mi_next = swing.JMenuItem("Next generation")
 		controller.add_action(mi_next, gui_control.next_paint)
@@ -369,6 +378,12 @@ def gui_enable_save(enable):
 	gui_menu.mi_save_all.enabled = enable
 	gui_menu.mi_dump_data.enabled = enable
 
+def gui_clear_generation():
+	global generation_history
+	generation_history = []
+	gui_clear_graph()
+	evolution.reset_generation()
+
 def gui_clear_graph():
 	global graph_history
 	global generation_history
@@ -388,7 +403,7 @@ def gui_next_graph(graph):
 	gui_mini_view.add_mini_view(graph)
 	gui_canvas.set_graph(graph)
 	gui_control.enable_rating(1)
-	gui_status_bar.show_message("New graph generated.")
+	gui_status_bar.show_message("New generation.")
 	gui_enable_save(1)
 
 		
