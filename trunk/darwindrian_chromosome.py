@@ -24,6 +24,16 @@ def scale_down(dist):
 	
 	return dist
 
+#simple random point on intialization
+class RandomPoint:
+  	def __init__(self):
+		self.x = random.randint(1,100)
+		self.y = random.randint(1,100) 
+	
+	def scale_upto(self, max_x, max_y):
+	  	self.x = int((self.x/100.0)*max_x)
+		self.y = int((self.y/100.0)*max_y)
+	
 class Chromosome:
 	
 	def __init__(self):
@@ -31,7 +41,7 @@ class Chromosome:
 		#fitness value from 1~10
 		self.color_fitness = 5.0
 		self.structure_fitness = 5.0
-		
+		self.survival_chance = 1
 		self.complexity = 3 #Fixed
 		self.loop = 4  #fixed
 		
@@ -42,7 +52,11 @@ class Chromosome:
 			{'Cross':0.0, 'Nodal':0.2, 'Terminal':0.9, 'OnLine':0.3, 'RightAngle':1.0, 'Initial':1.0}
 		#Color distribution
 		self.color_dist = {RED: random.uniform(1,10), BLUE: random.uniform(1,10), YELLOW: random.uniform(1,10)}
+		self.origin_points = [RandomPoint(), RandomPoint(), RandomPoint()]
 	
+	def overall_fitness(self):
+		return (self.color_fitness+self.structure_fitness)/2.0
+		
 	def __rand_d(self):
 		v = []
 		for i in range(0, self.loop):
@@ -112,6 +126,7 @@ class Chromosome:
 		
 		_new.direction_dist = _d_dist
 		_new.color_dist = _c_dist
+		_new.origin_points = self.origin_points[0:2]+another.origin_points[2:]
 		return _new
 		
 class EvolutionManager:
@@ -136,28 +151,31 @@ class EvolutionManager:
 		if(len(self.__current) <= 1):
 			print "No more samples in current generation"
 			return
-			
-		for i in range(-1, len(self.__current)-1):
-			_next.append(self.__current[i].cross_over(self.__current[i+1]))
 		
+		#sort chromosomes on fitness value
+		self.__current.sort(lambda a,b : cmp(a.overall_fitness(), b.overall_fitness()))
+		self.__current.reverse()
+		max_survive = self.__current[0].overall_fitness()
+		
+		_next.append(self.__current[0])
+		for i in range(0, len(self.__current)):
+			#Determines whether this chromosome should reproduce
+			#The first one should always survive, for it has the most high fitness value
+			#The first one is unchanged and preserved on next generation (elite)
+			#The last one is discarded, for it has the lowest fitness value
+			
+			if luck(self.__current[i].overall_fitness()/max_survive) and i != len(self.__current)-1:
+				_next.append(self.__current[i].cross_over(self.__current[i+1]))
+				
 		self.__history = self.__current
 		self.__current = _next
 		return self.__current
 		
-class ChromosomeManager:
-	def __init__(self):
-		pass
-		
-	def get_next_chromosome(self):
-		#impl
-		return Chromosome()
-		
-#static instance
-ChromoManager = ChromosomeManager()
 
 #Util methods
 def luck(percentage):
 	return random.uniform(0,1) <= percentage
+
 
 #return value structure: list of:
 #[x, y, width, height]

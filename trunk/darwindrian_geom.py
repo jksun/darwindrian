@@ -128,10 +128,9 @@ class Mondrian:
 					
 	def __add_original_points(self):
 		print 'complexity:',self.__chromosome.complexity
-		for i in range(0, self.__chromosome.complexity):
-			x = random.randint(1,self.__size.width)
-			y = random.randint(1,self.__size.height)
-			p = HVPoint(x, y)
+		for rp in self.__chromosome.origin_points:
+			rp.scale_upto(self.__size.width, self.__size.height)
+			p = HVPoint(rp.x, rp.y)
 			self.__points.append(p)
 			print 'generated point:',p
 			#Is sorting needed?

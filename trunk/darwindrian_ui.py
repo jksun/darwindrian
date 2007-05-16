@@ -14,6 +14,7 @@ from java.lang import System
 from darwindrian_geom import *
 from darwindrian_controller import *
 
+generation_history = []
 graph_history = []
 
 class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
@@ -126,7 +127,7 @@ class Canvas(swing.JPanel):
 		
 		self.repaint()
 		if graph != None:
-			gui_status_bar.show_message("Overall fitness:"+str((graph.chromosome.structure_fitness+graph.chromosome.color_fitness)/2.0))
+			gui_status_bar.show_message("Overall fitness:"+str(graph.chromosome.overall_fitness()))
 	
 	def get_graph(self):
 		return self.__current_graph
@@ -288,11 +289,13 @@ class ControlPane(swing.JPanel):
 		co = gui_canvas.get_graph().chromosome
 		co.structure_fitness = co.structure_fitness + 1
 		co.color_fitness = co.color_fitness + 1
-		gui_status_bar.show_message('overall rating: '+str((co.structure_fitness+co.color_fitness)/2.0))
+		gui_status_bar.show_message('overall rating: '+str(co.overall_fitness()))
 				
 	def next_paint(self):
+		global graph_history
 		i = 0
 		gui_status_bar.show_message("Generating pictures, please wait....")
+
 		batch = evolution.next_generation()
 		for chromosome in batch:
 			graph = mondrian_instance.compose(chromosome, gui_canvas.preferredSize)
@@ -368,6 +371,10 @@ def gui_enable_save(enable):
 
 def gui_clear_graph():
 	global graph_history
+	global generation_history
+
+	#generation_history.append(graph_history)
+	
 	graph_history = []
 	gui_mini_view.clear()
 	gui_canvas.set_graph(None)
