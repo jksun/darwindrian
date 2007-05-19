@@ -32,7 +32,7 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 			if selected:
 				wrapper.background = awt.Color.GRAY
 			
-			value.gray_scale = selected
+			value.gray_scale = 1 #selected
 			return wrapper
 	
 	class __MiniMondrian(swing.JPanel):
@@ -79,7 +79,7 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 	def add_mini_view(self, graph):
 		mini = self.__MiniMondrian(graph)
 		self.__listModel.addElement(mini)
-		self.__list.setSelectedIndex(self.__listModel.size()-1)
+		self.__list.setSelectedIndex(0)#(self.__listModel.size()-1)
 	
 	def clear(self):
 		self.__listModel.clear()
@@ -93,7 +93,12 @@ class MiniView(swing.JScrollPane, swing.event.ListSelectionListener):
 			graph = None
 		else:
 			graph = graph_history[index]
-		gui_canvas.set_graph(graph)
+
+			gui_control.stru.selected = graph.chromosome.structure_prefer
+			gui_control.co.selected = graph.chromosome.color_prefer
+			gui_control.both.selected = graph.chromosome.structure_prefer and graph.chromosome.color_prefer
+			gui_control.none.selected = (not graph.chromosome.structure_prefer) and (not graph.chromosome.color_prefer)
+			gui_canvas.set_graph(graph)
 		
 class Canvas(swing.JPanel):
 	'''GUI component which is responsible for rendering pictures'''
@@ -266,36 +271,35 @@ class ControlPane(swing.JPanel):
 			b.setActionCommand(text)
 			return b
 		
-		stru = rb('Structure')
-		co = rb('Color')
-		both = rb('Both')
-		self.__r_options = (stru, co, both)
+		self.stru = rb('Structure')
+		self.co = rb('Color')
+		self.both = rb('Both')
+		self.none = rb('None')
+		self.__r_options = (self.stru, self.co, self.both, self.none)
 
-		controller.add_action(stru, self.__like_structure)
-		controller.add_action(co, self.__like_color)
-		
-		controller.add_action(both, self.__like_both)
-		
 		for b in self.__r_options:
 			self.add(b)
 			self.__group.add(b)
-			
+			controller.add_action(b, self.__like_config, b)
+
 		self.add(self.__next_b)
 		controller.add_action(self.__next_b, self.next_paint)
 		
-	def __like_structure(self):
-		gui_canvas.get_graph().chromosome.structure_fitness = gui_canvas.get_graph().chromosome.structure_fitness + 1
-		gui_status_bar.show_message('Structure fitness: '+str(gui_canvas.get_graph().chromosome.structure_fitness))
-	
-	def __like_color(self):
-		gui_canvas.get_graph().chromosome.color_fitness = gui_canvas.get_graph().chromosome.color_fitness + 1
-		gui_status_bar.show_message('Color fitness: '+str(gui_canvas.get_graph().chromosome.color_fitness))
-	
-	def __like_both(self):
-		co = gui_canvas.get_graph().chromosome
-		co.structure_fitness = co.structure_fitness + 1
-		co.color_fitness = co.color_fitness + 1
-		gui_status_bar.show_message('overall rating: '+str(co.overall_fitness()))
+	def __like_config(self, source):
+	  chromosome = gui_canvas.get_graph().chromosome
+	  chromosome.structure_prefer = 0
+	  chromosome.color_prefer = 0
+
+	  if source == self.stru:
+	    chromosome.structure_prefer = 1
+	  elif source == self.co:
+	    chromosome.color_prefer = 1
+	  elif source == self.both:
+	    chromosome.structure_prefer = 1
+	    chromosome.color_prefer = 1
+	  elif source == self.__none:
+	    pass
+
 				
 	def next_paint(self):
 	  	gui_clear_graph()
@@ -401,7 +405,7 @@ def gui_next_graph(graph):
 	global graph_history
 	graph_history.append(graph)
 	gui_mini_view.add_mini_view(graph)
-	gui_canvas.set_graph(graph)
+	gui_canvas.set_graph(graph_history[0])
 	gui_control.enable_rating(1)
 	gui_status_bar.show_message("New generation.")
 	gui_enable_save(1)

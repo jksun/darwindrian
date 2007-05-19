@@ -127,7 +127,7 @@ class Mondrian:
 			self.__rectangles[rec] = color
 					
 	def __add_original_points(self):
-		print 'complexity:',self.__chromosome.complexity
+		#print 'complexity:',self.__chromosome.complexity
 		for rp in self.__chromosome.origin_points:
 			rp.scale_upto(self.__size.width, self.__size.height)
 			p = HVPoint(rp.x, rp.y)
