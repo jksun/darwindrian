@@ -43,11 +43,11 @@ class Chromosome:
 	
 	def __init__(self):
 		
-		#fitness value from 1~10
-		self.color_fitness = 5.0
-		self.structure_fitness = 5.0
+		#fitness value from 0~1
+		self.fitness = 0.5
+		self.structure_prefer = 0
+		self.color_prefer = 0
 		self.survival_chance = 1
-		self.complexity = 3 #Fixed
 		self.loop = 4  #fixed
 		
 		self.direction_dist = \
@@ -60,7 +60,7 @@ class Chromosome:
 		self.origin_points = [RandomPoint(), RandomPoint(), RandomPoint()]
 	
 	def overall_fitness(self):
-		return (self.color_fitness+self.structure_fitness)/2.0
+		return self.fitness
 		
 	def __rand_d(self):
 		v = []
@@ -153,15 +153,18 @@ class EvolutionManager:
 		for i in range(0, POPULATION):
 			self.__current.append(Chromosome())
 		return self.__current
-		
+	
+	def __analyse_current(self):
+	  	print 'Evaluating...'
+		pass
+
 	def next_generation(self):
 		if self.__initial:
 			return self.new_generation()
-			
+		
+		self.__analyse_current()
+
 		_next = []
-		if(len(self.__current) <= 1):
-			print "No more samples in current generation"
-			return
 		
 		#sort chromosomes on fitness value
 		self.__current.sort(lambda a,b : cmp(a.overall_fitness(), b.overall_fitness()))
@@ -177,7 +180,9 @@ class EvolutionManager:
 			
 			if luck(self.__current[i].overall_fitness()/max_survive) and i != len(self.__current)-1:
 				_next.append(self.__current[i].cross_over(self.__current[i+1]))
-				
+		
+		while len(_next) < 20:
+			_next.append(Chromosome())
 		self.__history = self.__current
 		self.__current = _next
 		return self.__current
