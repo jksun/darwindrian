@@ -129,10 +129,7 @@ class Canvas(swing.JPanel):
 		
 	def set_graph(self, graph):
 		self.__current_graph = graph
-		
 		self.repaint()
-		if graph != None:
-			gui_status_bar.show_message("Overall fitness:"+str(graph.chromosome.overall_fitness()))
 	
 	def get_graph(self):
 		return self.__current_graph
@@ -289,16 +286,25 @@ class ControlPane(swing.JPanel):
 	  chromosome = gui_canvas.get_graph().chromosome
 	  chromosome.structure_prefer = 0
 	  chromosome.color_prefer = 0
+	  chromosome.fitness = 0.5
 
 	  if source == self.stru:
 	    chromosome.structure_prefer = 1
+	    chromosome.fitness += 0.25
+
 	  elif source == self.co:
 	    chromosome.color_prefer = 1
+	    chromosome.fitness += 0.15
+
 	  elif source == self.both:
 	    chromosome.structure_prefer = 1
 	    chromosome.color_prefer = 1
-	  elif source == self.__none:
-	    pass
+	    chromosome.fitness += 0.5
+
+	  elif source == self.none:
+	    chromosome.fitness -= 0.2
+
+	  print "rated fitness: ", chromosome.fitness
 
 				
 	def next_paint(self):
@@ -350,8 +356,18 @@ class ControlMenu(swing.JMenuBar):
 		controller.add_action(mi_next, gui_control.next_paint)
 		sp = swing.JSeparator()
 		
-		mi_info = swing.JMenuItem("Show evolution info...")
-		
+		mi_info = swing.JMenuItem("Set mutation on")
+		def mutation_toggle(menu = mi_info):
+
+		  evolution.mutation = not evolution.mutation
+		  if evolution.mutation:
+		    mi_info.text = "Set mutation off"
+		  else:
+		    mi_info.text = "Set mutation on"
+
+
+		controller.add_action(mi_info, mutation_toggle)
+
 		for m in (mi_reset, mi_next, sp, mi_info):
 			m_evolution.add(m)
 			
