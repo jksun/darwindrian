@@ -14,7 +14,8 @@ CROSS_POINT = 0.5
 COMPLEXITY = 4
 POPULATION = 20
 
-
+WIDTH = 480
+HEIGHT = 480
 
 def scale_down(dist):
 	_all = reduce(lambda x,y: x+y, dist.values())
@@ -27,17 +28,9 @@ def scale_down(dist):
 #simple random point on intialization
 class RandomPoint:
   	def __init__(self):
-		self.x = random.randint(1,100)
-		self.y = random.randint(1,100)
-		self.__scaled = 0
+		self.x = random.randint(1,WIDTH)
+		self.y = random.randint(1,HEIGHT)
 	
-	def scale_upto(self, max_x, max_y):
-	  	if self.__scaled:
-		  	return
-
-	  	self.x = int((self.x/100.0)*max_x)
-		self.y = int((self.y/100.0)*max_y)
-		self.__scaled = 1
 	
 class Chromosome:
 	
@@ -47,9 +40,11 @@ class Chromosome:
 		self.fitness = 0.5
 		self.structure_prefer = 0
 		self.color_prefer = 0
-		self.survival_chance = 1
 		self.loop = 4  #fixed
 		
+		self.area_factor_w = WIDTH
+		self.area_factor_h = HEIGHT
+
 		self.direction_dist = \
 			{'East': self.__rand_d(),'West':self.__rand_d(),'South':self.__rand_d(),'North':self.__rand_d()}
 
@@ -95,6 +90,22 @@ class Chromosome:
 		probability = self.structure_dist[node.get_type()]
 		return luck(probability)
 	
+
+	def choose_rect_by_restrict(self, all_avail):
+		candidates = filter(lambda r: r[2]*r[3] <= self.area_factor_w*self.area_factor_h, all_avail)
+		if len(candidates) == 0:
+			return None
+		else:
+		  	return random.choice(candidates)
+	
+
+	def __trim_area_factor(self, chosen):
+	  if len(chosen) == 0:
+	    return
+	  recs = map(lambda c: c[0], chosen)
+	  self.area_factor_w = max(map(lambda rec: rec[2], recs))
+	  self.area_factor_h = max(map(lambda rec: rec[3], recs))
+	
 	#return value structure:
 	#([x, y, width, height],color)
 	#impl
@@ -108,30 +119,80 @@ class Chromosome:
 		while 1:
 			for k in self.color_dist.keys():
 				p = self.color_dist[k]
-				if luck(p):	
-					result.append((random.choice(all_avail), k))
+				if luck(p):
+				  	chosen = self.choose_rect_by_restrict(all_avail)
+					if chosen <> None:
+						result.append((chosen, k))
+					else:
+					  	self.__trim_area_factor(result)
+					  	return result
+
 				if len(result) >=2:
+				  	self.__trim_area_factor(result)
 					return result
-		#for i in range(0,2):
-		#	result.append((random.choice(all_avail),random.choice([RED, BLUE, YELLOW])))
-			
-		#return result
-		
+
 	def cross_over(self, another):
+
 		_new = Chromosome()
+	  	#0~4
+	  	struct_cross_point = 2
+		#0~3
+		origin_interchange_point = 2
+
+		if self.structure_prefer > another.structure_prefer:
+		  if self.color_prefer > another.color_prefer:
+		    struct_cross_point = 4
+		    origin_interchange_point = 3
+		  else:
+		    structure_cross_point = 3
+		    origin_interchange_point = 2
+		
+		elif self.structure_prefer == another.structure_prefer:
+		  struct_cross_point = 2
+		  origin_interchange_point = random.choice([1,2])
+		else:
+		  #Should not happen, for the chromosomes are fitness sorted
+		  pass
+
+
+		#0~3
+		color_cross_point = 1
+		if self.color_prefer > another.color_prefer:
+		  if self.structure_prefer > another.structure_prefer:
+		    color_cross_point = 3 #all
+		  else:
+		    color_cross_point = 2 
+		elif self.color_prefer == another.color_prefer:
+		  color_cross_point = random.choice([1,2])
+		else:
+		  color_cross_point = 0
+
 		#cross direction distribution
 		_d_dist = self.direction_dist.copy()
 		for k in _d_dist.keys():
-			_d_dist[k][2:] = another.direction_dist[k][2:]
+		  _d_dist[k][struct_cross_point:] = another.direction_dist[k][struct_cross_point:]
+
+
+		if self.structure_prefer > another.structure_prefer:
+		  _new.area_factor_w = self.area_factor_w
+		  _new.area_factor_h = self.area_factor_h
+		elif self.structure_prefer == another.structure_prefer:
+		  _new.area_factor_w = self.area_factor_w
+		  _new.area_factor_h = another.area_factor_h
+		else:
+		  _new.area_factor_w = another.area_factor_w
+		  _new.area_factor_h = another.area_factor_h
+
 		#cross color distribution
 		_c_dist = self.color_dist.copy()
-		#randomly choose a color  probability value to be replaced by another chromosome
-		chosen = random.choice(_c_dist.keys())
-		_c_dist[chosen] = another.color_dist[chosen]
+		for k in another.color_dist.keys()[color_cross_point:]:
+		  _c_dist[k] = another.color_dist[k]
+	
 		
 		_new.direction_dist = _d_dist
 		_new.color_dist = _c_dist
-		_new.origin_points = self.origin_points[0:2]+another.origin_points[2:]
+		_new.origin_points = self.origin_points[0:origin_interchange_point]+another.origin_points[origin_interchange_point:]
+
 		return _new
 		
 class EvolutionManager:
@@ -140,6 +201,7 @@ class EvolutionManager:
 		self.__current = [];
 		self.__history = [];
 		self.__initial = 1
+		self.mutation = 0
 	
 	def reset_generation(self):
 		self.__current = [];
@@ -154,18 +216,14 @@ class EvolutionManager:
 			self.__current.append(Chromosome())
 		return self.__current
 	
-	def __analyse_current(self):
-	  	print 'Evaluating...'
-		pass
 
 	def next_generation(self):
 		if self.__initial:
 			return self.new_generation()
 		
-		self.__analyse_current()
 
 		_next = []
-		
+		cross_over_count = 0
 		#sort chromosomes on fitness value
 		self.__current.sort(lambda a,b : cmp(a.overall_fitness(), b.overall_fitness()))
 		self.__current.reverse()
@@ -179,12 +237,18 @@ class EvolutionManager:
 			#The last one is discarded, for it has the lowest fitness value
 			
 			if luck(self.__current[i].overall_fitness()/max_survive) and i != len(self.__current)-1:
+			  	cross_over_count += 1
 				_next.append(self.__current[i].cross_over(self.__current[i+1]))
 		
-		while len(_next) < 20:
-			_next.append(Chromosome())
+		if self.mutation:
+		  	print "Mutation on..."
+			while len(_next) < 20:
+				_next.append(Chromosome())
+
 		self.__history = self.__current
 		self.__current = _next
+
+		print "Successor in this generation:", cross_over_count
 		return self.__current
 		
 
