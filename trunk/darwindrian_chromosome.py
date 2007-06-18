@@ -242,7 +242,7 @@ class EvolutionManager:
 		
 		if self.mutation:
 		  	print "Mutation on..."
-			while len(_next) < 20:
+			while len(_next) < POPULATION:
 				_next.append(Chromosome())
 
 		self.__history = self.__current
